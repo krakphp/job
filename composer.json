@@ -1,0 +1,24 @@
+{
+    "name": "krak/job",
+    "description": "Simple and Powerful Queued Jobs",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "RJ Garcia",
+            "email": "rj@bighead.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Krak\\Job\\": "src"
+        },
+        "files": ["src/inc.php"]
+    },
+    "require": {
+        "krak/mw": "^0.1.0",
+        "nikic/iter": "^1.4",
+        "psr/log": "^1.0",
+        "symfony/process": "^2.8"
+    }
+}
