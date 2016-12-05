@@ -16,7 +16,7 @@
         "files": ["src/inc.php"]
     },
     "require": {
-        "krak/mw": "^0.1.0",
+        "krak/mw": "^0.3.0",
         "nikic/iter": "^1.4",
         "psr/log": "^1.0",
         "symfony/process": "^2.8"

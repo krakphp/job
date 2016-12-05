@@ -2,7 +2,7 @@
 
 namespace Krak\Job;
 
-use function Krak\Mw\composeMwSet;
+use Krak\Mw;
 
 /** manages a stack of consumers to form a pipeline. Consumers at the end will be executed first */
 abstract class AbstractPipeline
@@ -27,6 +27,6 @@ abstract class AbstractPipeline
         return array_shift($this->middleware);
     }
     public function compose() {
-        return composeMwSet($this->middleware);
+        return mw\compose($this->middleware);
     }
 }
