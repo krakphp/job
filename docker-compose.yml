@@ -1,0 +1,19 @@
+version: "2"
+
+services:
+    apache2-php:
+        image: php:5.6-cli
+        container_name: krak-job-php
+        hostname: php
+        volumes:
+            - .:/var/cli/job
+        restart: unless-stopped
+        working_dir: /var/cli/job
+        command: tail -f /dev/null
+    redis:
+        image: redis
+        container_name: krak-job-redis
+        hostname: redis
+        mem_limit: 128m
+        environment: { TERM: xterm }
+        restart: unless-stopped

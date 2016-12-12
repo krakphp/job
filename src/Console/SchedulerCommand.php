@@ -5,10 +5,9 @@ namespace Krak\Job\Console;
 use Krak\Job,
     Symfony\Component\Console\Command\Command,
     Symfony\Component\Console\Input,
-    Symfony\Component\Console\Output,
-    Symfony\Component\Console\Logger\ConsoleLogger;
+    Symfony\Component\Console\Output;
 
-class ScheduleCommand extends Command
+class SchedulerCommand extends Command
 {
     private $scheduler_factory;
 
@@ -18,26 +17,19 @@ class ScheduleCommand extends Command
     }
 
     protected function configure() {
-        $this->setName('job:schedule')
-            ->setDescription('Starts a scheduler to pull queue and start workers')
-            ->addArgument(
-                'queue',
-                Input\InputArgument::REQUIRED,
-                'the name of the queue to schedule workers'
-            );
+        $this->setName('job:scheduler')
+            ->setDescription('Starts a scheduler to pull queue and start workers');
     }
 
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output) {
-        $argv = $_SERVER['argv'];
+        $options = json_decode(file_get_contents('php://stdin'), true);
 
         $scheduler_factory = $this->scheduler_factory;
-        $scheduler = $scheduler_factory(new ConsoleLogger($output));
+        $scheduler = $scheduler_factory();
 
         $output->writeln('<info>Starting Scheduler</info>');
-        $scheduler->run([
-            'bin' => $this->getBinFromArgv($argv),
-            'queue' => $input->getArgument('queue')
-        ]);
+        $scheduler->run($options);
+        $output->writeln('<info>Scheduler Stopped</info>');
     }
 
     private function getBinFromArgv($argv) {

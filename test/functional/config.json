@@ -1,0 +1,17 @@
+{
+    "worker_cmd": "php console.php job:worker",
+    "scheduler_cmd": "php console.php job:scheduler",
+    "sleep": 1,
+    "schedulers": [
+        {
+            "queue": "jobs",
+            "sleep": 1,
+            "ttl": 10
+        },
+        {
+            "queue": "jobs1",
+            "sleep": 2,
+            "ttl": 20
+        }
+    ]
+}
