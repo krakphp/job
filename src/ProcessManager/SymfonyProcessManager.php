@@ -36,14 +36,11 @@ class SymfonyProcessManager implements ProcessManager
             return [$running, $finished];
         }, $this->procs, [[], []]);
 
-        return iter\toArray(iter\map(function($tup) {
-            list($proc, $meta) = $tup;
-            if ($proc->isSuccessful()) {
-                return [1, $proc->getOutput(), $meta, $proc->getPid()];
-            }
+        return iter\toArray($finished);
+    }
 
-            return [0, $proc->getErrorOutput(), $meta, $proc->getPid()];
-        }, $finished));
+    public function getProcs() {
+        return $this->procs;
     }
 
     public function count() {

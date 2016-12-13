@@ -43,4 +43,7 @@ class MockProcessManager implements ProcessManager
     public function count() {
         return count($this->procs);
     }
+    public function getProcs() {
+        return $this->procs;
+    }
 }

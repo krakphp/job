@@ -12,4 +12,5 @@ interface ProcessManager extends \Countable {
         - `$output` is just the raw string content
     */
     public function reap();
+    public function getProcs();
 }

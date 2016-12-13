@@ -12,7 +12,13 @@ $produce = Krak\Mw\compose([
     Job\queueProduce($manager)
 ]);
 
-$produce(new Job\Job('test-job', [
-    '_queue' => 'jobs',
-    'data' => 1,
-]));
+$num = intval($argv[2]);
+
+$i = 0;
+while ($i < $num) {
+    $produce(new Job\Job('test-job', [
+        '_queue' => $argv[1],
+        'data' => $i,
+    ]));
+    $i += 1;
+}

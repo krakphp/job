@@ -10,6 +10,7 @@ function queueScheduleLoop($loop = null) {
         sleepScheduleLoop(),
         queueJobDispatchScheduleLoop(),
         queueJobReapScheduleLoop(),
+        statsLogScheduleLoop(),
         ttlScheduleLoop(),
     ]);
     return function($params, $next) use ($loop) {
@@ -33,6 +34,9 @@ function queueJobDispatchScheduleLoop() {
 
         $queue = $params->queue();
         while ($job = $queue->dequeue()) {
+            $params->logger->info("launching job {name}", [
+                'name' => $job->name,
+            ]);
             $params->process_manager->launch(
                 $params->get('worker_cmd'),
                 serialize($job),
@@ -41,6 +45,7 @@ function queueJobDispatchScheduleLoop() {
 
             $cur_jobs = count($params->process_manager);
             if ($cur_jobs >= $max_jobs) {
+                $params->logger->debug('cur_jobs >= max_jobs');
                 break;
             }
         }
@@ -58,22 +63,22 @@ function queueJobReapScheduleLoop($fail_job = null) {
         $finished = $params->process_manager->reap();
 
         foreach ($finished as $tup) {
-            list($success, $output, $job) = $tup;
-            if (!$success) {
+            list($proc, $job) = $tup;
+            if (!$proc->isSuccessful()) {
                 $params->logger->error('Job Process encountered an error', [
                     'job' => $job->name,
                     'payload' => $job->payload,
-                    'error' => $output,
+                    'error' => $proc->getErrorOutput(),
                 ]);
 
                 $fail_job($params, $job);
             } else {
-                $res = unserialize($output);
+                $res = unserialize($proc->getOutput());
                 if (!$res || !$res instanceof Result) {
                     $params->logger->error('Worker returned invalid output', [
                         'job' => $job->name,
                         'payload' => $job->payload,
-                        'output' => $output,
+                        'output' => $proc->getOutput(),
                     ]);
                     $fail_job($params, $job);
                     continue;

@@ -43,4 +43,7 @@ class LoggingProcessManager implements ProcessManager
     public function count() {
         return $this->manager->count();
     }
+    public function getProcs() {
+        return $this->procs;
+    }
 }

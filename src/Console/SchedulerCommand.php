@@ -5,7 +5,8 @@ namespace Krak\Job\Console;
 use Krak\Job,
     Symfony\Component\Console\Command\Command,
     Symfony\Component\Console\Input,
-    Symfony\Component\Console\Output;
+    Symfony\Component\Console\Output,
+    Symfony\Component\Console\Logger\ConsoleLogger;
 
 class SchedulerCommand extends Command
 {
@@ -24,12 +25,33 @@ class SchedulerCommand extends Command
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output) {
         $options = json_decode(file_get_contents('php://stdin'), true);
 
+        if (!is_array($options)) {
+            throw new \RuntimeException('Expected JSON array as stdin');
+        }
+
+        $bin = $this->getBinFromArgv($_SERVER['argv']);
+        $options['worker_cmd'] = $bin . ' job:worker -vvv';
+        $options['scheduler_cmd'] = $bin . ' job:scheduler -vvv';
+
         $scheduler_factory = $this->scheduler_factory;
         $scheduler = $scheduler_factory();
 
-        $output->writeln('<info>Starting Scheduler</info>');
-        $scheduler->run($options);
-        $output->writeln('<info>Scheduler Stopped</info>');
+        $logger = new ConsoleLogger($output);
+        $logger = new PrefixLogger($logger, $this->getPrefixFromOptions($options));
+
+        $logger->info("Starting Scheduler");
+        $scheduler->run($logger, $options);
+        $logger->info("Starting Stopped");
+    }
+
+    private function getPrefixFromOptions(array $options) {
+        if (isset($options['name'])) {
+            return $options['name'] . ': ';
+        } else if (isset($options['queue'])) {
+            return 'Queue Scheduler - ' . $options['queue'] . ': ';
+        } else {
+            return '';
+        }
     }
 
     private function getBinFromArgv($argv) {

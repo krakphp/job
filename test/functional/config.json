@@ -1,17 +1,15 @@
 {
-    "worker_cmd": "php console.php job:worker",
-    "scheduler_cmd": "php console.php job:scheduler",
-    "sleep": 1,
+    "name": "Master Scheduler",
+    "sleep": 5,
     "schedulers": [
         {
             "queue": "jobs",
-            "sleep": 1,
-            "ttl": 10
+            "sleep": 10,
+            "max_jobs": 2
         },
         {
             "queue": "jobs1",
-            "sleep": 2,
-            "ttl": 20
+            "ttl": 60
         }
     ]
 }
