@@ -5,7 +5,7 @@
         {
             "queue": "jobs",
             "sleep": 10,
-            "max_jobs": 2
+            "max_jobs": 10
         },
         {
             "queue": "jobs1",

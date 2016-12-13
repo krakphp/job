@@ -19,8 +19,12 @@ $app->add(new Job\Console\SchedulerCommand(function() {
     );
 }));
 $app->add(new Job\Console\WorkerCommand(function() {
-    return new Job\Worker(function() {
-        return Job\Result::complete();
+    return new Job\Worker(function($job) {
+        if ($job->payload['data'] > 10) {
+            return Job\Result::failed();
+        } else {
+            return Job\Result::complete();
+        }
     });
 }));
 

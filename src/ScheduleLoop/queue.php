@@ -65,26 +65,28 @@ function queueJobReapScheduleLoop($fail_job = null) {
         foreach ($finished as $tup) {
             list($proc, $job) = $tup;
             if (!$proc->isSuccessful()) {
-                $params->logger->error('Job Process encountered an error', [
-                    'job' => $job->name,
-                    'payload' => $job->payload,
-                    'error' => $proc->getErrorOutput(),
+                $params->logger->error("Job {name} Process #{pid} encountered an error\n{output}", [
+                    'name' => $job->name,
+                    'pid' => $proc->getPid(),
+                    'output' => $proc->getErrorOutput(),
                 ]);
 
                 $fail_job($params, $job);
             } else {
                 $res = unserialize($proc->getOutput());
                 if (!$res || !$res instanceof Result) {
-                    $params->logger->error('Worker returned invalid output', [
-                        'job' => $job->name,
-                        'payload' => $job->payload,
+                    $params->logger->error("Job {name} Worker #{pid} returned invalid output\n{output}", [
+                        'name' => $job->name,
+                        'pid' => $proc->getPid(),
                         'output' => $proc->getOutput(),
                     ]);
                     $fail_job($params, $job);
                     continue;
                 }
-                $params->logger->info('Job Finished - ' . $job->name . ' - ' . $res->status, [
-                    'payload' => $job->payload,
+                $params->logger->info("Job {name} finished with status: {status}\n{payload}", [
+                    'name' => $job->name,
+                    'status' => $res->status,
+                    'payload' => json_encode($res->payload, JSON_PRETTY_PRINT),
                 ]);
 
                 if ($res->isFailed()) {
