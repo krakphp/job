@@ -6,41 +6,30 @@ use Krak\Job,
     Symfony\Component\Console\Command\Command,
     Symfony\Component\Console\Input,
     Symfony\Component\Console\Output,
-    Symfony\Component\Console\Logger\ConsoleLogger;
+    Symfony\Component\Console\Logger\ConsoleLogger,
+    Symfony\Component\Yaml;
 
 class SchedulerCommand extends Command
 {
-    private $scheduler_factory;
-
-    public function __construct($scheduler_factory) {
-        parent::__construct();
-        $this->scheduler_factory = $scheduler_factory;
-    }
-
     protected function configure() {
         $this->setName('job:scheduler')
-            ->setDescription('Starts a scheduler to pull queue and start workers');
+            ->setDescription('Starts a scheduler to run the schedule loop')
+            ->setHidden(true);
     }
 
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output) {
-        $options = json_decode(file_get_contents('php://stdin'), true);
-
-        if (!is_array($options)) {
-            throw new \RuntimeException('Expected JSON array as stdin');
+        if (!$input->getStream()) {
+            $input->setStream(fopen('php://stdin', 'r'));
         }
+        $options = json_decode(stream_get_contents($input->getStream()), true);
 
-        $bin = $this->getBinFromArgv($_SERVER['argv']);
-        $options['worker_cmd'] = $bin . ' job:worker -vvv';
-        $options['scheduler_cmd'] = $bin . ' job:scheduler -vvv';
-
-        $scheduler_factory = $this->scheduler_factory;
-        $scheduler = $scheduler_factory();
+        $scheduler = $this->getHelper('krak_job')->getKernel()->createScheduler();
 
         $logger = new ConsoleLogger($output);
         $logger = new PrefixLogger($logger, $this->getPrefixFromOptions($options));
 
         $logger->info("Starting Scheduler");
-        $scheduler->run($logger, $options);
+        $scheduler->run($output, $logger, $options);
         $logger->info("Starting Stopped");
     }
 
@@ -52,14 +41,5 @@ class SchedulerCommand extends Command
         } else {
             return '';
         }
-    }
-
-    private function getBinFromArgv($argv) {
-        $bin = $argv[0];
-        if (strpos($bin, './') === 0) {
-            return $bin;
-        }
-
-        return "php " . $bin;
     }
 }

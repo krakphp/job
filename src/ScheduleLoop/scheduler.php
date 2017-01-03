@@ -59,15 +59,13 @@ function schedulerLogScheduleLoop() {
             list($proc, $options) = $tup;
 
             if ($proc->getOutput()) {
-                $params->logger->info("stdout for #{pid}\n" . $proc->getOutput(), [
-                    'pid' => $proc->getPid(),
-                ]);
+                $pid = $proc->getPid();
+                $params->output->write("stdout for #{$pid}\n" . $proc->getOutput());
                 $proc->clearOutput();
             }
             if ($proc->getErrorOutput()) {
-                $params->logger->error("stderr for #{pid}\n" . $proc->getErrorOutput(), [
-                    'pid' => $proc->getPid(),
-                ]);
+                $pid = $proc->getPid();
+                $params->logger->error("stderr for #{$pid}\n" . $proc->getErrorOutput());
                 $proc->clearErrorOutput();
             }
         }

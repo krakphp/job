@@ -8,7 +8,7 @@ function sleepScheduleLoop($sleep = 'sleep') {
             return $next($params);
         }
 
-        $params->logger->info('going to sleep for {sleep} seconds', [
+        $params->logger->debug('going to sleep for {sleep} seconds', [
             'sleep' => $params->get('sleep')
         ]);
         $sleep($params->get('sleep'));
@@ -37,7 +37,7 @@ Stats
     Peak Memory Usage in MB: {peak_memory_usage_mb}
     Number of Processes: {num_procs}
 LOG;
-        $params->logger->info($log, [
+        $params->logger->debug($log, [
             'total_runtime' => _formatSeconds($now - $stats['time_start']),
             'total_runtime_seconds' => $now - $stats['time_start'],
             'total_memory_usage_mb' => round((memory_get_usage() - $stats['memory_start']) / 1024 / 1024, 4),

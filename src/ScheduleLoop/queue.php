@@ -34,12 +34,12 @@ function queueJobDispatchScheduleLoop() {
 
         $queue = $params->queue();
         while ($job = $queue->dequeue()) {
-            $params->logger->info("launching job {name}", [
-                'name' => $job->name,
+            $params->logger->notice("Staring Job {name}", [
+                'name' => $job->payload['name'],
             ]);
             $params->process_manager->launch(
                 $params->get('worker_cmd'),
-                serialize($job),
+                (string) $job,
                 $job
             );
 
@@ -66,9 +66,9 @@ function queueJobReapScheduleLoop($fail_job = null) {
             list($proc, $job) = $tup;
             if (!$proc->isSuccessful()) {
                 $params->logger->error("Job {name} Process #{pid} encountered an error\n{output}", [
-                    'name' => $job->name,
+                    'name' => $job->payload['name'],
                     'pid' => $proc->getPid(),
-                    'output' => $proc->getErrorOutput(),
+                    'output' => $proc->getErrorOutput() ?: $proc->getOutput(),
                 ]);
 
                 $fail_job($params, $job);
@@ -76,15 +76,15 @@ function queueJobReapScheduleLoop($fail_job = null) {
                 $res = unserialize($proc->getOutput());
                 if (!$res || !$res instanceof Result) {
                     $params->logger->error("Job {name} Worker #{pid} returned invalid output\n{output}", [
-                        'name' => $job->name,
+                        'name' => $job->payload['name'],
                         'pid' => $proc->getPid(),
                         'output' => $proc->getOutput(),
                     ]);
                     $fail_job($params, $job);
                     continue;
                 }
-                $params->logger->info("Job {name} finished with status: {status}\n{payload}", [
-                    'name' => $job->name,
+                $params->logger->notice("Job {name} finished with status: {status}\n{payload}", [
+                    'name' => $job->payload['name'],
                     'status' => $res->status,
                     'payload' => json_encode($res->payload, JSON_PRETTY_PRINT),
                 ]);

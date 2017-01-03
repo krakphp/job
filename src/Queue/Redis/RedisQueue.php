@@ -19,7 +19,7 @@ class RedisQueue extends Job\Queue\AbstractQueue
         $this->failed_queue_name = $failed_queue_name;
     }
 
-    public function enqueue(Job\Job $job) {
+    public function enqueue(Job\WrappedJob $job) {
         return $this->redis->lpush($this->queue_name, $job);
     }
 
@@ -28,14 +28,14 @@ class RedisQueue extends Job\Queue\AbstractQueue
         if (!$job) {
             return;
         }
-        return Job\Job::fromString($job);
+        return Job\WrappedJob::fromString($job);
     }
 
-    public function fail(Job\Job $job) {
+    public function fail(Job\WrappedJob $job) {
         $this->redis->lrem($this->processing_queue_name, 1, $job);
         $this->redis->lpush($this->failed_queue_name, $job);
     }
-    public function complete(Job\Job $job) {
+    public function complete(Job\WrappedJob $job) {
         $this->redis->lrem($this->processing_queue_name, 1, $job);
     }
 }

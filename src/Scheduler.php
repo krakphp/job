@@ -7,6 +7,8 @@ use Psr\Log\LoggerInterface,
     Symfony\Component\Console\Output\OutputInterface,
     Symfony\Component\Process;
 
+use function Krak\Mw\compose;
+
 class Scheduler
 {
     private $process_manager;
@@ -19,13 +21,14 @@ class Scheduler
         $this->loop = $loop;
     }
 
-    public function run(LoggerInterface $logger, array $options) {
+    public function run(OutputInterface $output, LoggerInterface $logger, array $options) {
         $i = 0;
 
         $params = new ScheduleLoop\ScheduleLoopParams();
         $params->process_manager = $this->process_manager;
         $params->queue_manager = new Queue\CachedQueueManager($this->queue_manager);
         $params->logger = $logger;
+        $params->output = $output;
 
         $params->options = $options;
         $params->iteration_count = $i;
