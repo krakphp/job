@@ -18,11 +18,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - YAML configuration
 - Added a new Command named ConsumeCommand which is the only entry point to
   start the jobs.
+- ScheduleLoop system to allow full customization of how the scheduling works
+- Simple `complete` and `failed` methods to return specific job results
+- Added AutoArgs for Job Handlers
 
 ### Changed
 
+- Simplified the Scheduler in favor of ScheduleLoop
 - Refactored a lot of the old producer/consumer stuff
-- Refactored the Job class to be a simple interface
+- Refactored the Job class to be a simple interface where jobs hold the data
+  and handler code.
 - Hid the Scheduler and Worker command in favor of Consume Command.
 
 ## [0.1.1] - 2016-01-05
