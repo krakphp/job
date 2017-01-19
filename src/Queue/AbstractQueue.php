@@ -13,8 +13,8 @@ abstract class AbstractQueue implements Queue {
         return $this->name = $name;
     }
 
-    abstract public function enqueue(Job\Job $job);
+    abstract public function enqueue(Job\WrappedJob $job);
     abstract public function dequeue();
-    abstract public function fail(Job\Job $job);
-    abstract public function complete(Job\Job $job);
+    abstract public function fail(Job\WrappedJob $job);
+    abstract public function complete(Job\WrappedJob $job);
 }

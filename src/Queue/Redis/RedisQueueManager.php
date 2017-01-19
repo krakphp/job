@@ -19,6 +19,7 @@ class RedisQueueManager implements Queue\QueueManager
     public function removeQueue($name) {
         $this->redis->del($name);
         $this->redis->del($name . '-processing');
+        $this->redis->del($name . '-failed');
     }
 
     public function getQueue($name) {
@@ -26,7 +27,8 @@ class RedisQueueManager implements Queue\QueueManager
             $this->redis,
             $name,
             $name,
-            $name . '-processing'
+            $name . '-processing',
+            $name . '-failed'
         );
     }
 }
