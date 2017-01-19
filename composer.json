@@ -20,7 +20,7 @@
         "krak/mw": "^0.4.1",
         "nikic/iter": "^1.4",
         "psr/log": "^1.0",
-        "symfony/process": "^2.8",
+        "symfony/process": "^2.8|^3.0",
         "symfony/yaml": "^3.2"
     },
     "require-dev": {
