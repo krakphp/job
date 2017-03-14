@@ -2,25 +2,30 @@
 
 namespace Krak\Job;
 
-/** Core of the Job Framework. This is the main entity that glues everything together */
-interface Kernel
+use Krak\Cargo;
+
+class Kernel extends Cargo\Container\ContainerDecorator implements Dispatch
 {
-    /** returns a queue manager instance */
-    public function getQueueManager();
-    /** create a dispatcher */
-    public function createDispatch();
-    /** create a scheduler */
-    public function createScheduler();
-    /** create a worker */
-    public function createWorker();
-    /** configure the producer stack */
-    public function producer(\Closure $predicate);
-    /** configure the consumer stack */
-    public function consumer(\Closure $predicate);
-    /** configure the schedule loop */
-    public function scheduleLoop(\Closure $predicate);
-    /** configure the process manager */
-    public function processManager(\Closure $predicate);
-    /** configure the auto args context */
-    public function autoArgsContext(\Closure $predicate);
+    public function __construct(Cargo\Container $c = null) {
+        parent::__construct($c ?: Cargo\container([], $auto_wire = true));
+        Cargo\register($this, new JobServiceProvider());
+    }
+
+    public function wrap(Job $job) {
+        return $this[Dispatch::class]->wrap($job);
+    }
+    public function dispatch(Job $job) {
+        return $this[Dispatch::class]->dispatch($job);
+    }
+    public function dispatchWrappedJob(WrappedJob $wrapped) {
+        return $this[Dispatch::class]->dispatchWrappedJob($wrapped);
+    }
+
+    public function config(array $config) {
+        $this['krak.job.config'] = $config;
+    }
+
+    public function queueManager($def) {
+        Cargo\wrap($this, Queue\QueueManager::class, $def);
+    }
 }

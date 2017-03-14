@@ -6,8 +6,8 @@ use Krak\Job,
     Symfony\Component\Console\Command\Command,
     Symfony\Component\Console\Input,
     Symfony\Component\Console\Output,
-    Symfony\Component\Console\Logger\ConsoleLogger,
-    Symfony\Component\Yaml\Yaml;
+    Symfony\Component\Console\Logger\ConsoleLogger;
+use Symfony\Component\Filesystem\LockHandler;
 
 class ConsumeCommand extends Command
 {
@@ -15,15 +15,21 @@ class ConsumeCommand extends Command
         $this->setName('job:consume')
             ->setDescription('Consumes the jobs by starting scheudlers/workers according to config')
             ->addArgument(
-                'config-path',
-                Input\InputArgument::REQUIRED,
-                'The path to the jobs.yml file'
+                'instance-name',
+                Input\InputArgument::OPTIONAL,
+                'An identifier for the scheduler instance. Only one instance of a scheduler can be running at a time. Defaults to "scheduler"'
             );
     }
 
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output) {
-        $config_path = $input->getArgument('config-path');
-        $options = Yaml::parse(file_get_contents($config_path));
+        $instance_name = $input->getArgument('instance-name') ?: 'scheduler';
+
+        $lock_handler = new LockHandler($instance_name.'.lock');
+        if (!$lock_handler->lock()) {
+            $output->writeln('<error>A scheduler of this instance is already running.</error>');
+            return 0;
+        }
+        $options = $this->getHelper('krak_job')->getKernel()['krak.job.config'];
 
         $bin = $this->getBinFromArgv($_SERVER['argv']);
         $options['worker_cmd'] = $bin . ' job:worker ' .$this->getVerbosityString($output);

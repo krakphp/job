@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2017-03-16
+### Added
+
+- Tight Cargo Integration, removed pimple integration
+- Kernel implements Dispatch interface
+- Simple `complete` and `failed` methods to return specific job results
+- New FailJob stacks to properly handle the failing of jobs.
+- Consume file locking to allow for scheduled invoking of the `job:consumer` command.
+- New default Stub QueueManager
+
+### Changed
+
+- Updated ttl behavior to not actually kill the loop until the queue is empty.
+- Updated dependencies
+- Removed `Queue::fail` as to move that logic to the FailJob module.
+
 ## [0.2.0] - 2017-01-19
 ### Added
 

@@ -31,10 +31,6 @@ class RedisQueue extends Job\Queue\AbstractQueue
         return Job\WrappedJob::fromString($job);
     }
 
-    public function fail(Job\WrappedJob $job) {
-        $this->redis->lrem($this->processing_queue_name, 1, $job);
-        $this->redis->lpush($this->failed_queue_name, $job);
-    }
     public function complete(Job\WrappedJob $job) {
         $this->redis->lrem($this->processing_queue_name, 1, $job);
     }

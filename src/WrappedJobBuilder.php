@@ -25,6 +25,6 @@ class WrappedJobBuilder
     }
 
     public function dispatch() {
-        return $this->dispatch->dispatch(new WrappedJob($this->job, $this->payload));
+        return $this->dispatch->dispatchWrappedJob(new WrappedJob($this->job, $this->payload));
     }
 }

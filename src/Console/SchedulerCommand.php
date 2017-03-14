@@ -23,14 +23,15 @@ class SchedulerCommand extends Command
         }
         $options = json_decode(stream_get_contents($input->getStream()), true);
 
-        $scheduler = $this->getHelper('krak_job')->getKernel()->createScheduler();
+        $scheduler = $this->getHelper('krak_job')->getKernel()[Job\Scheduler::class];
 
         $logger = new ConsoleLogger($output);
         $logger = new PrefixLogger($logger, $this->getPrefixFromOptions($options));
-
+        $logger->error('1,2,3');
+        $logger->error('3,4,5');
         $logger->info("Starting Scheduler");
         $scheduler->run($output, $logger, $options);
-        $logger->info("Starting Stopped");
+        $logger->info("Stopping Scheduler");
     }
 
     private function getPrefixFromOptions(array $options) {

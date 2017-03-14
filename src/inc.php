@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/FailJob/fail-job.php';
 require_once __DIR__ . '/job.php';
 require_once __DIR__ . '/Pipeline/consume.php';
 require_once __DIR__ . '/Pipeline/pipeline.php';
