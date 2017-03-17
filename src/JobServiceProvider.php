@@ -24,7 +24,10 @@ class JobServiceProvider implements Cargo\ServiceProvider
             return new Scheduler(
                 $c[ProcessManager\ProcessManager::class],
                 $c[Queue\QueueManager::class],
-                Mw\compose([$loop])
+                Mw\compose([
+                    Mw\guard('No schedulerLoop was able to resolve a response. Please check your configuration.'),
+                    $loop
+                ])
             );
         };
         $c[Worker::class] = function($c) {
@@ -57,12 +60,13 @@ class JobServiceProvider implements Cargo\ServiceProvider
                 Pipeline\queueProduce($c[Queue\QueueManager::class]),
                 Pipeline\timestampProduce(),
                 Pipeline\classNameProduce(),
-                Pipeline\defaultQueueNameProduce($c['krak.job.default_queue_name']);
+                Pipeline\defaultQueueNameProduce($c['krak.job.default_queue_name']),
             ]);
         };
         $c['krak.job.config'] = [
             'queue' => 'jobs',
-            'max_jobs' => 10
+            'max_jobs' => 10,
+            'sleep' => 10,
         ];
         $c['krak.job.default_queue_name'] = 'jobs';
         if (!isset($c[AutoArgs\AutoArgs::class])) {
