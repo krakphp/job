@@ -1,6 +1,0 @@
-name: "Master Scheduler"
-sleep: 5
-schedulers:
-    - queue: "jobs"
-      max_jobs: 10
-    - queue: "jobs1"

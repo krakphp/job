@@ -16,6 +16,22 @@ function sleepScheduleLoop($sleep = 'sleep') {
     };
 }
 
+function killOnEmptyScheduleLoop() {
+    return function($params, $next) {
+        $stop = $params->get('kill', false);
+        if (!$stop) {
+            return $next($params);
+        }
+
+        $params->logger->debug('Killing on empty');
+        if (count($params->process_manager)) {
+            return $next($params);
+        } else {
+            return false;
+        }
+    };
+}
+
 function _formatSeconds($seconds) {
     $dtF = new \DateTime('@0');
     $dtT = new \DateTime("@$seconds");
@@ -61,44 +77,14 @@ function ttlScheduleLoop() {
 
         // if we've exceeded the ttl, then kill the loop */
         if ($now >= $then) {
-            $params->logger->debug('Ttl exceeded', [
+            $params->logger->debug('Ttl exceeded, sending kill', [
                 'ts' => $ts,
                 'ttl' => $params->get('ttl'),
                 'then' => $then
             ]);
-            return false;
+            $params->options['kill'] = true;
         }
 
         return $next($params);
-    };
-}
-
-function _failJob() {
-    return function($params, $job) {
-        $max_retry = $params->get('max_retry', 0);
-        $queue = $params->queue();
-
-        $retry = isset($job->payload['_retry'])
-            ? $job->payload['_retry']
-            : 0;
-
-        if ($retry >= $max_retry) {
-            $params->logger->debug('Retry exceeded, failing job', [
-                'job' => $job->name,
-                'payload' => $job->payload,
-                'retry' => $retry,
-                'max_retry' => $max_retry,
-            ]);
-            $queue->fail($job);
-        } else {
-            $params->logger->debug('Retrying Job', [
-                'job' => $job->name,
-                'payload' => $job->payload,
-                'retry' => $retry,
-                'max_retry' => $max_retry,
-            ]);
-            $job->payload['_retry'] = $retry + 1;
-            $queue->enqueue($job);
-        }
     };
 }

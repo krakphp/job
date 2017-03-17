@@ -59,6 +59,17 @@ function classToNameProduce($prefix = '', $sep = '.') {
     };
 }
 
+/** defaults the queue name to the given name if one does not exist */
+function defaultQueueNameProduce($queue) {
+    return function(Job\WrappedJob $wrapped, $next) use ($queue) {
+        if (isset($wrapped->payload['queue'])) {
+            return $next($wrapped);
+        }
+
+        return $next($wrapped->withAddedPayload(['queue' => $queue]));
+    };
+}
+
 /** determine the queue name from the prefix by separator */
 function queueNamePrefixProduce($sep = '.') {
     return function(Job\WrappedJob $wrapped, $next) use ($sep) {

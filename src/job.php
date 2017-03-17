@@ -16,11 +16,6 @@ function failed(array $payload = []) {
     return Result::failed($payload);
 }
 
-function createKernel(...$args) {
-    $qm = createQueueManager(...$args);
-    return new Kernel\JobKernel($qm);
-}
-
 /** factory for creating queue managers */
 function createQueueManager(...$args) {
     if ($args[0] instanceof \Predis\ClientInterface) {
@@ -29,7 +24,6 @@ function createQueueManager(...$args) {
 
     throw new \InvalidArgumentException('Unable to determine queue type to create');
 }
-
 
 function registerConsole(\Symfony\Component\Console\Application $app, Kernel $kernel) {
     $app->addCommands([

@@ -15,6 +15,5 @@ abstract class AbstractQueue implements Queue {
 
     abstract public function enqueue(Job\WrappedJob $job);
     abstract public function dequeue();
-    abstract public function fail(Job\WrappedJob $job);
     abstract public function complete(Job\WrappedJob $job);
 }

@@ -5,11 +5,12 @@ namespace Krak\Job\ScheduleLoop;
 use Krak\Job\Result,
     Krak\Mw;
 
-function queueScheduleLoop($loop = null) {
+function queueScheduleLoop($fail_job = null, $loop = null) {
     $loop = $loop ?: mw\group([
         sleepScheduleLoop(),
+        killOnEmptyScheduleLoop(),
         queueJobDispatchScheduleLoop(),
-        queueJobReapScheduleLoop(),
+        queueJobReapScheduleLoop($fail_job),
         statsLogScheduleLoop(),
         ttlScheduleLoop(),
     ]);
@@ -55,8 +56,7 @@ function queueJobDispatchScheduleLoop() {
 }
 
 /** reaps all of the finished jobs. Allows for a max_retry configuration */
-function queueJobReapScheduleLoop($fail_job = null) {
-    $fail_job = $fail_job ?: _failJob();
+function queueJobReapScheduleLoop($fail_job) {
     return function($params, $next) use ($fail_job) {
         $queue = $params->queue();
 
@@ -70,8 +70,7 @@ function queueJobReapScheduleLoop($fail_job = null) {
                     'pid' => $proc->getPid(),
                     'output' => $proc->getErrorOutput() ?: $proc->getOutput(),
                 ]);
-
-                $fail_job($params, $job);
+                $fail_job($job, $params);
             } else {
                 $res = unserialize($proc->getOutput());
                 if (!$res || !$res instanceof Result) {
@@ -80,7 +79,7 @@ function queueJobReapScheduleLoop($fail_job = null) {
                         'pid' => $proc->getPid(),
                         'output' => $proc->getOutput(),
                     ]);
-                    $fail_job($params, $job);
+                    $fail_job($job, $params);
                     continue;
                 }
                 $params->logger->notice("Job {name} finished with status: {status}\n{payload}", [
@@ -90,7 +89,7 @@ function queueJobReapScheduleLoop($fail_job = null) {
                 ]);
 
                 if ($res->isFailed()) {
-                    $fail_job($params, $job);
+                    $fail_job($job, $params);
                 } else {
                     $queue->complete($job);
                 }

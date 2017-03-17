@@ -18,12 +18,38 @@ Install with composer at `krak/job`.
 
 ### Create the Kernel
 
-The kernel is the core manager of the Job library. It holds the configuration and acts like a factory for the various components.
+The kernel is the core manager of the Job library. It's simply a Cargo\\Container decorator with helper methods.
 
 ```php
 <?php
 
-$kernel = Krak\Job\createKernel(new \Predis\Client());
+$kernel = new Krak\Job\Kernel();
+```
+
+You can also pass an optional Container instance if you want to use a special container.
+
+#### Configuring the Kernel
+
+You can configure the kernel by wrapping any of the services defined in the container. In addition to the configuration provided by the Cargo\\Container, the kernel provides helper methods to ease customization.
+
+```php
+// configure the scheduling loop
+$kernel->config([
+    'name' => 'Jobs Queue',
+    'sleep' => 10,
+    'ttl' => 50,
+    'max_jobs' => 10,
+    'max_retry' => 3,
+]);
+// configure the queue manager
+$kernel->queueManager(function($qm, $c) {
+    return Krak\Job\createQueueManager(new Predis\Client());
+});
+// configure the consumer stack
+$kernel->wrap('krak.job.pipeline.consumer', function($consumer) {
+    return $consumer->push(myConsumer());
+});
+// and so on...
 ```
 
 ### Define a Job
@@ -36,6 +62,7 @@ Every Job must implement the empty interface `Krak\Job\Job` and have a `handle` 
 namespace Acme\Jobs;
 
 use Krak\Job\Job;
+use Acme\ServiceA;
 
 class ProcessJob implements Job
 {
@@ -45,21 +72,25 @@ class ProcessJob implements Job
         $this->id = $id;
     }
 
-    public function handle() {
+    public function handle(ServiceA $service) {
         process($this->id);
     }
 }
 ```
 
+Arguments will automatically wired into the handle method using the AutoArgs package. The Job instance will be serialized, so make sure that the properties of the Job are serializable. It'd also be a good idea to keep the amount of data in a job as small as possible.
+
 ### Dispatch a Job
 
-Dispatching jobs is easy using the `Krak\Job\Dispath`.
+Dispatching jobs is easy using the `Krak\Job\Dispatch`.
 
 ```php
 <?php
 
+use Krak\Job;
+
 // use the kernel to create a dispatch instance
-$dispatch = $kernel->createDispatch();
+$dispatch = $kernel['dispatch']; // or $kernel[Job\Dispatch::class];
 
 $dispatch->wrap(new Acme\Jobs\ProcessJob(1))
     ->onQueue('process') // this is optional
@@ -71,17 +102,7 @@ $dispatch->wrap(new Acme\Jobs\ProcessJob(1))
 
 In order to start consuming jobs, you need to do a few things:
 
-1. Create your jobs.yml file to configure the scheduling of the queues.
-
-    ```yaml
-    name: "Jobs Scheduler"
-    queue: "process"
-    ttl: 120 # optional, the max time the scheduler will run for before exiting
-    sleep: 30 # sleep for 30 seconds after every loop
-    max_jobs: 10 # optional, the max number of jobs to run at once
-    ```
-
-2. Register the Commands with your Symfony/Laravel Console Application
+1. Register the Commands with your Symfony Console Application
 
     ```php
     <?php
@@ -96,7 +117,7 @@ In order to start consuming jobs, you need to do a few things:
 3. Start the consumer
 
     ```bash
-    ./bin/console job:consume jobs.yml -vvv
+    ./bin/console job:consume -vvv
     ```
 
     You can change the verbosity level to suite your needs
@@ -137,69 +158,35 @@ The Dispatch is a very simple class/interface designed to wrap Job's into `Wrapp
 
 ### Queue
 
-The Queuing module handles the actual queueing implementations.
+The Queuing module handles the actual queueing implementations. There are two main components: Queue Managers and Queues.
+
+**Supported Queues**
+
+- Redis
+- Stub
 
 ## Cookbook
 
-### Configuring the Kernel
-
-```php
-<?php
-
-$kernel = Krak\Job\createKernel();
-$kernel->producer(function($stack) {
-    // add any middleware
-    $stack->push(autoQueueNameProduce('Acme\Jobs\'));
-    return $stack;
-});
-$kernel->consumer(function() {});
-$kernel->scheduleLoop(function() {});
-```
-
-### Pimple Integration
-
-You can easily integrate your Job Kernel with pimple which allows you to use pimple services as middleware in any middleware stack and also allows for better invocation of the Job handler.
-
-```php
-<?php
-
-$kernel = Krak\Job\createKernel(/* ... */);
-$kernel = new Krak\Job\Kernel\PimpleKernel($kernel, new Pimple\Container());
-```
-
-Now, with this wrapped kernel, you can do the following:
-
-```php
-<?php
-
-$kernel->producer(function($stack) {
-    $stack->push('some-pimple-service-id-of-a-middleware');
-    return $stack;
-});
-
-// also, you can use the AutoArgs functionality in your job handlers.
-$container[AcmeProcessor::class] = function() {};
-
-class AcmeJob implements Krak\Job\Job {
-    public function handle(AcmeProcessor $processor, Pimple\Container $container) {
-
-    }
-}
-```
-
-Internally, it uses [Krak\\AutoArgs](https://github.com/krakphp/auto-args) to implement the auto arguments.
-
 ### Async Scheduling
 
-To perform schedule multiple queues at a time, you can create a jobs.yml file like this.
+To perform schedule multiple queues at a time, update the kernel config like this:
 
-```yaml
-name: "Master Scheduler"
-sleep: 5
-schedulers:
-    - queue: "jobs"
-      max_jobs: 10
-    - queue: "jobs1"
+```php
+$kernel->config([
+    'name' => 'Master Scheduler',
+    'sleep' => 10,
+    'ttl' => 50,
+    'schedulers' => [
+        [
+            'queue' => 'emails',
+            'max_jobs' => 20,
+        ],
+        [
+            'queue' => 'orders',
+            'max_retry' => 3,
+        ]
+    ]
+]);
 ```
 
-This will create a master scheduler that will then manage two schedulers which manage a different queue.
+This will create a master scheduler that will then manage two schedulers which manage a different queue. This will launch two separate processes that manage each queue, so the processing of each queue will be completely asynchronous.

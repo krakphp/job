@@ -19,7 +19,11 @@ class ProducerDispatch implements Job\Dispatch
         return new $cls($this, $job);
     }
 
-    public function dispatch(Job\WrappedJob $job) {
+    public function dispatch(Job\Job $job) {
+        return $this->wrap($job)->dispatch();
+    }
+
+    public function dispatchWrappedJob(Job\WrappedJob $job) {
         $produce = $this->produce;
         return $produce($job);
     }

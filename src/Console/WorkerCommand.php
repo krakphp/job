@@ -16,7 +16,7 @@ class WorkerCommand extends Command
     }
 
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output) {
-        $worker = $this->getHelper('krak_job')->getKernel()->createWorker();
+        $worker = $this->getHelper('krak_job')->getKernel()[Job\Worker::class];
         $output->write($worker->work(file_get_contents('php://stdin')));
     }
 }
