@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2017-03-17
+
+- Fixed bug in Kernel
+
 ## [0.3.0] - 2017-03-16
 ### Added
 
