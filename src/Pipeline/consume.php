@@ -15,6 +15,12 @@ use Krak\Mw,
 function invokeJobConsume(AutoArgs\AutoArgs $auto_args, array $context = []) {
     return function(Job\WrappedJob $wrapped) use ($auto_args, $context) {
         $callable = [$wrapped->job, 'handle'];
+        if (!isset($context['objects'])) {
+            $context['objects'] = [];
+        }
+
+        $context['objects'][] = $wrapped;
+
         $res = $auto_args->invoke($callable, $context);
 
         if ($res instanceof Job\Result) {

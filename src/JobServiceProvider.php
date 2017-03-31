@@ -13,8 +13,25 @@ class JobServiceProvider implements Cargo\ServiceProvider
             $produce = $c['krak.job.pipeline.produce'];
             return new Dispatch\ProducerDispatch(Mw\compose([$produce]));
         };
-        $c[Queue\QueueManager::class] = function() {
-            return new Queue\Stub\StubQueueManager();
+        $c[Queue\Sqs\SqsQueueManager::class] = function($c) {
+            return new Queue\Sqs\SqsQueueManager(
+                $c['Aws\Sqs\SqsClient'],
+                $c['krak.job.queue.sqs.queue_url_map'],
+                $c['krak.job.queue.sqs.receive_options']
+            );
+        };
+        $c[Queue\Redis\RedisQueueManager::class] = function($c) {
+            return new Queue\Redis\RedisQueueManager($c['Predis\ClientInterface']);
+        };
+        $c[Queue\QueueManager::class] = function($c) {
+            $provider = $c['krak.job.queue_provider'];
+            switch ($provider) {
+            case 'redis': return $c[Queue\Redis\RedisQueueManager::class];
+            case 'sqs': return $c[Queue\Sqs\SqsQueueManager::class];
+            case 'stub': return new Queue\Stub\StubQueueManager();
+            default:
+                throw new \InvalidArgumentException('Invalid Queue Provider (krak.job.queue_provider) given.');
+            }
         };
         $c[ProcessManager\ProcessManager::class] = function($c) {
             return new ProcessManager\SymfonyProcessManager();
@@ -69,6 +86,10 @@ class JobServiceProvider implements Cargo\ServiceProvider
             'sleep' => 10,
         ];
         $c['krak.job.default_queue_name'] = 'jobs';
+        $c['krak.job.queue_provider'] = 'stub';
+        $c['krak.job.queue.sqs.queue_url_map'] = [];
+        $c['krak.job.queue.sqs.receive_options'] = [];
+
         if (!isset($c[AutoArgs\AutoArgs::class])) {
             $c[AutoArgs\AutoArgs::class] = function($c) {
                 return new AutoArgs\AutoArgs();

@@ -21,6 +21,13 @@ function createQueueManager(...$args) {
     if ($args[0] instanceof \Predis\ClientInterface) {
         return new Queue\Redis\RedisQueueManager($args[0]);
     }
+    if ($args[0] instanceof \Aws\Sqs\SqsClient) {
+        return new Queue\Sqs\SqsQueueManager(
+            $args[0],
+            isset($args[1]) ? $args[1] : [],
+            isset($args[2]) ? $args[2] : []
+        );
+    }
 
     throw new \InvalidArgumentException('Unable to determine queue type to create');
 }

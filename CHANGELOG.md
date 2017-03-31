@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- New Sqs Queue Provider
+- New `delay` option in the WrappedJobBuilder to support delayed queueing.
+- Alternative options for choosing your queue.
+
+### Fixed
+
+- Bug in consumer startup.
+- Bug in Redis queue that would prevent modified jobs from being removed from processing queue.
+
 ## [0.3.1] - 2017-03-17
 
 - Fixed bug in Kernel

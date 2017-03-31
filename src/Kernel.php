@@ -4,7 +4,7 @@ namespace Krak\Job;
 
 use Krak\Cargo;
 
-class Kernel extends Cargo\Container\ContainerDecorator
+class Kernel extends Cargo\Container\ContainerDecorator implements Queue\QueueManager
 {
     public function __construct(Cargo\Container $c = null) {
         parent::__construct($c ?: Cargo\container([], $auto_wire = true));
@@ -21,5 +21,17 @@ class Kernel extends Cargo\Container\ContainerDecorator
 
     public function queueManager($def) {
         Cargo\wrap($this, Queue\QueueManager::class, $def);
+    }
+
+    public function createQueue($name, array $opts = []) {
+        return $this[Queue\QueueManager::class]->createQueue($name, $opts);
+    }
+
+    public function removeQueue($name) {
+        return $this[Queue\QueueManager::class]->removeQueue($name);
+    }
+
+    public function getQueue($name) {
+        return $this[Queue\QueueManager::class]->getQueue($name);
     }
 }

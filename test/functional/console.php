@@ -13,8 +13,12 @@ class EchoJob implements Job\Job
         $this->id = $id;
     }
 
-    public function handle(SplStack $stack) {
-        return Job\complete(['id' => $this->id, 'count' => $stack->count()]);
+    public function handle(SplStack $stack, Job\WrappedJob $job) {
+        return Job\complete([
+            'id' => $this->id,
+            'count' => $stack->count(),
+            'payload' => $job->payload,
+        ]);
     }
 }
 
