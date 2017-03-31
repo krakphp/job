@@ -95,6 +95,7 @@ $dispatch = $kernel['dispatch']; // or $kernel[Job\Dispatch::class];
 $dispatch->wrap(new Acme\Jobs\ProcessJob(1))
     ->onQueue('process') // this is optional
     ->withName('process')
+    ->delay(3600) // will delay the sending of this job for 1 hour (not all queues support delay)
     ->dispatch();
 ```
 
@@ -114,7 +115,7 @@ In order to start consuming jobs, you need to do a few things:
 
     At this point, we've registered all of the job commands and added the JobHelper to the helper set.
 
-3. Start the consumer
+2. Start the consumer
 
     ```bash
     ./bin/console job:consume -vvv
@@ -163,7 +164,58 @@ The Queuing module handles the actual queueing implementations. There are two ma
 **Supported Queues**
 
 - Redis
+- Sqs
 - Stub
+
+#### Redis
+
+Redis requires the `predis/predis` library to be installed. You then just set the queue manager via:
+
+```php
+$kernel->queueManager(function() {
+    return createQueueManager(new Predis\Client());
+});
+```
+
+or
+
+```php
+$kernel['Predis\ClientInterface'] = function() {
+    return new Predis\Client();
+};
+$kernel['krak.job.queue_provider'] = 'redis';
+```
+
+#### Sqs
+
+Sqs requires the aws sdk to be installed `aws/aws-sdk-php`. You can set the queue manager via:
+
+```php
+$kernel->queueManager(function() {
+return createQueueManager(new Aws\Sqs\SqsClient(), /* optional*/ ['queue-name' => '{queue-url}'], /* optional */ $sqs_receive_options);
+});
+```
+
+or
+
+```php
+$kernel['Aws\Sqs\SqsClient'] = function() {
+    return new Aws\Sqs\SqsClient();
+};
+$kernel['krak.job.queue.sqs.queue_url_map'] = ['queue-name' => '{queue-url}'];
+$kernel['krak.job.queue.sqs.receive_options'] = ['VisibilityTimeout' => 10];
+$kernel['krak.job.queue_provider'] = 'sqs';
+```
+
+The `queue_url_map` is a cache that will be used to lookup the sqs queue url from the queue name given. This cache is optional and will be populated at runtime if not set.
+
+##### Message Configuration
+
+You can configure how you send messages with configuration when you wrap and dispatch the job.
+
+```php
+$dispatch->wrap(new MyJob())->with('sqs', ['AnySendMessageParamer' => 'Value'])->dispatch();
+```
 
 ## Cookbook
 

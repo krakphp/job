@@ -24,6 +24,16 @@ class WrappedJobBuilder
         return $this;
     }
 
+    public function delay($seconds) {
+        $this->payload['delay'] = $seconds;
+        return $this;
+    }
+
+    public function with($key, $value) {
+        $this->payload[$key] = $value;
+        return $this;
+    }
+
     public function dispatch() {
         return $this->dispatch->dispatchWrappedJob(new WrappedJob($this->job, $this->payload));
     }
