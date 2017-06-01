@@ -11,7 +11,11 @@ class Kernel extends Cargo\Container\ContainerDecorator implements Queue\QueueMa
         Cargo\register($this, new JobServiceProvider());
     }
 
-    public function dispatch(Job $job) {
+    public function dispatch(Job $job = null) {
+        if (!$job) {
+            return $this[Dispatch::class];
+        }
+
         return $this[Dispatch::class]->dispatch($job);
     }
 

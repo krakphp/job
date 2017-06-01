@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Kernel Dispatch #13
+
 ## [0.3.2] - 2017-03-30
 
 ### Added
