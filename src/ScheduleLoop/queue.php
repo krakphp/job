@@ -36,7 +36,7 @@ function queueJobDispatchScheduleLoop() {
 
         $queue = $params->queue();
         while ($job = $queue->dequeue()) {
-            $params->logger->notice("Staring Job {name}", [
+            $params->logger->notice("Starting Job {name}", [
                 'name' => $job->payload['name'],
             ]);
             $params->process_manager->launch(

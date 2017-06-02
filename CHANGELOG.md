@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Job Restart #14
     - New commands: `job:restart` `job:stop` and `job:reset`
     - Cache integration
+- Respawn Option #17
 
 ## [0.3.2] - 2017-03-30
 

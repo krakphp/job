@@ -33,13 +33,13 @@ $kernel->config([
         [
             'queue' => 'jobs1',
             'sleep' => 2,
+            'ttl' => 10,
+            'respawn' => true
         ],
         [
-            'schedulers' => [
-                ['queue' => 'jobs2'],
-                ['queue' => 'jobs3']
-            ],
+            'queue' => 'jobs2',
             'sleep' => 5,
+            'ttl' => 30
         ]
     ],
     'sleep' => 2,
