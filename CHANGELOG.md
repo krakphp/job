@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.3 - 2017-06-02
+
 ### Added
 
 - Kernel Dispatch #13
