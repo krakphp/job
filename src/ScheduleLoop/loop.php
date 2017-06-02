@@ -88,3 +88,20 @@ function ttlScheduleLoop() {
         return $next($params);
     };
 }
+
+/** Checks the cache if the restart flag is set and triggers kill */
+function killFromCacheScheduleLoop() {
+    return function($params, $next) {
+        if (!$params->cache || $params->get('kill')) {
+            return $next($params);
+        }
+
+
+        if ($params->cache->get('kill', false)) {
+            $params->logger->debug('Received kill from cache, sending kill');
+            $params->options['kill'] = true;
+        }
+
+        return $next($params);
+    };
+}

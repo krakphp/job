@@ -38,5 +38,12 @@ function registerConsole(\Symfony\Component\Console\Application $app, Kernel $ke
         new Console\SchedulerCommand(),
         new Console\WorkerCommand(),
     ]);
+    if ($kernel->isCacheEnabled()) {
+        $app->addCommands([
+            new Console\RestartCommand(),
+            new Console\StopCommand(),
+            new Console\ResetCommand(),
+        ]);
+    }
     $app->getHelperSet()->set(new Console\JobHelper($kernel));
 }

@@ -13,6 +13,7 @@ function queueScheduleLoop($fail_job = null, $loop = null) {
         queueJobReapScheduleLoop($fail_job),
         statsLogScheduleLoop(),
         ttlScheduleLoop(),
+        killFromCacheScheduleLoop(),
     ]);
     return function($params, $next) use ($loop) {
         if (!$params->has('queue')) {
@@ -29,7 +30,7 @@ function queueJobDispatchScheduleLoop() {
         $max_jobs = $params->get('max_jobs', INF);
 
         $cur_jobs = count($params->process_manager);
-        if ($cur_jobs >= $max_jobs) {
+        if ($cur_jobs >= $max_jobs || $params->get('kill', false)) {
             return $next($params);
         }
 
@@ -39,7 +40,7 @@ function queueJobDispatchScheduleLoop() {
                 'name' => $job->payload['name'],
             ]);
             $params->process_manager->launch(
-                $params->get('worker_cmd'),
+                $params->getWorkerCommand(),
                 (string) $job,
                 $job
             );
