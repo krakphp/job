@@ -30,11 +30,15 @@ class ConsumeCommand extends Command
             return 0;
         }
         $options = $this->getHelper('krak_job')->getKernel()['krak.job.config'];
+        $options['_instance_name'] = $instance_name;
 
-        $bin = $this->getBinFromArgv($_SERVER['argv']);
-        $options['worker_cmd'] = $bin . ' job:worker ' .$this->getVerbosityString($output);
-        $options['scheduler_cmd'] = $bin . ' job:scheduler ' . $this->getVerbosityString($output);
+        $argv = $_SERVER['argv'];
+        $bin = $this->getBinFromArgv($argv);
 
+        $options['_worker_cmd'] = $bin . ' job:worker ' . $this->getVerbosityString($output);
+        $options['_scheduler_cmd'] = $bin . ' job:scheduler ' . $this->getVerbosityString($output);
+        $options['_consume_cmd'] = $bin . ' ' . implode(' ', array_slice($argv, 1));
+        $options['_root'] = true;
         $command = $this->getApplication()->find('job:scheduler');
         $command->run($this->createSchedulerInput($options), $output);
     }

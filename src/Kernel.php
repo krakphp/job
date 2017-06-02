@@ -3,6 +3,7 @@
 namespace Krak\Job;
 
 use Krak\Cargo;
+use Psr\SimpleCache\CacheInterface;
 
 class Kernel extends Cargo\Container\ContainerDecorator implements Queue\QueueManager
 {
@@ -37,5 +38,9 @@ class Kernel extends Cargo\Container\ContainerDecorator implements Queue\QueueMa
 
     public function getQueue($name) {
         return $this[Queue\QueueManager::class]->getQueue($name);
+    }
+
+    public function isCacheEnabled() {
+        return $this->has(CacheInterface::class);
     }
 }

@@ -123,6 +123,23 @@ In order to start consuming jobs, you need to do a few things:
 
     You can change the verbosity level to suite your needs
 
+### Restarting & Stopping Jobs
+
+There are times when you want to restart the running consumer or even restart the system. To enable this, you need to integrate `Psr\SimpleCache` into the kernel.
+
+Enabling cache:
+
+```php
+<?php
+
+$kernel['Psr\SimpleCache\CacheInterface'] = function($c) {
+    // return any CacheInterface
+    return new Symfony\Component\Cache\Simple\RedisCache($c['Predis\ClientInterface']);
+};
+```
+
+Once cache is enabled, then you'll have access to the following commands: `job:stop`, `job:restart`, and `job:reset`.
+
 ## Concepts
 
 The Job library is broken up into several parts: The Kernel, ScheduleLoop, Queues, Dispatch, Console, Pipeline, Jobs

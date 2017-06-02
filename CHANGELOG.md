@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Kernel Dispatch #13
+- Job Restart #14
+    - New commands: `job:restart` `job:stop` and `job:reset`
+    - Cache integration
 
 ## [0.3.2] - 2017-03-30
 

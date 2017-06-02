@@ -5,6 +5,7 @@ namespace Krak\Job;
 use Krak\Cargo;
 use Krak\Mw;
 use Krak\AutoArgs;
+use Psr\SimpleCache\CacheInterface;
 
 class JobServiceProvider implements Cargo\ServiceProvider
 {
@@ -44,8 +45,12 @@ class JobServiceProvider implements Cargo\ServiceProvider
                 Mw\compose([
                     Mw\guard('No schedulerLoop was able to resolve a response. Please check your configuration.'),
                     $loop
-                ])
+                ]),
+                $c->has(CacheInterface::class) ? $c->get(CacheInterface::class) : null
             );
+        };
+        $c[SchedulerControl::class] = function($c) {
+            return new SchedulerControl($c[CacheInterface::class]);
         };
         $c[Worker::class] = function($c) {
             $consume = $c['krak.job.pipeline.consume'];

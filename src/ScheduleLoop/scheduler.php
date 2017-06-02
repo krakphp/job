@@ -12,6 +12,7 @@ function schedulerScheduleLoop($loop = null) {
         schedulerLogScheduleLoop(),
         statsLogScheduleLoop(),
         ttlScheduleLoop(),
+        killFromCacheScheduleLoop(),
     ]);
     return function($params, $next) use ($loop) {
         if (!$params->has('schedulers')) {
@@ -39,7 +40,7 @@ function schedulerDispatchScheduleLoop() {
             $options = $options + $popts;
 
             $params->process_manager->launch(
-                $params->get('scheduler_cmd'),
+                $params->getSchedulerCommand(),
                 json_encode($options),
                 $options
             );

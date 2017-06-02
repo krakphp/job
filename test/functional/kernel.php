@@ -12,8 +12,13 @@ $kernel['Aws\Sqs\SqsClient'] = function() {
         'region' => 'us-west-1',
     ]);
 };
-$kernel['krak.job.queue_provider'] = 'sqs';
-$kernel['krak.job.queue.sqs.receive_options'] = ['MaxNumberOfMessages' => 5];
+$kernel['krak.job.queue_provider'] = 'redis';
+$kernel['Psr\SimpleCache\CacheInterface'] = function($c) {
+    return new Symfony\Component\Cache\Simple\RedisCache(
+        $c['Predis\ClientInterface']
+    );
+};
+// $kernel['krak.job.queue.sqs.receive_options'] = ['MaxNumberOfMessages' => 5];
 $kernel[SplStack::class] = function() {
     $s = new SplStack();
     $s->push(1);
@@ -23,9 +28,24 @@ $kernel[SplStack::class] = function() {
     return $s;
 };
 $kernel->config([
-    'queue' => 'jobs1',
+    'name' => 'Test Scheduler',
+    'schedulers' => [
+        [
+            'queue' => 'jobs1',
+            'sleep' => 2,
+        ],
+        [
+            'schedulers' => [
+                ['queue' => 'jobs2'],
+                ['queue' => 'jobs3']
+            ],
+            'sleep' => 5,
+        ]
+    ],
     'sleep' => 2,
-    'ttl' => 50,
+    // 'ttl' => 50,
 ]);
+
+// $kernel['Psr\SimpleCache\CacheInterface']->clear();
 
 return $kernel;
