@@ -244,11 +244,12 @@ To perform schedule multiple queues at a time, update the kernel config like thi
 $kernel->config([
     'name' => 'Master Scheduler',
     'sleep' => 10,
-    'ttl' => 50,
     'schedulers' => [
         [
             'queue' => 'emails',
             'max_jobs' => 20,
+            'respawn' => true, // will be respawned after exiting
+            'ttl' => 50,
         ],
         [
             'queue' => 'orders',

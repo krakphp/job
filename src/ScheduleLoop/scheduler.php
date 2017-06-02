@@ -81,11 +81,20 @@ function schedulerReapScheduleLoop() {
         $finished = $params->process_manager->reap();
 
         foreach ($finished as $tup) {
-            list($proc) = $tup;
+            list($proc, $options) = $tup;
             if (!$proc->isSuccessful()) {
                 $params->logger->error('Scheduler Process encountered an error');
             } else {
                 $params->logger->info('Scheduler Process Finished');
+            }
+
+            if (!$params->get('kill', false) && isset($options['respawn']) && $options['respawn']) {
+                $params->logger->info("Respawning Scheduler");
+                $params->process_manager->launch(
+                    $params->getSchedulerCommand(),
+                    json_encode($options),
+                    $options
+                );
             }
         }
 
