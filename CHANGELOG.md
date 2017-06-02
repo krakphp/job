@@ -1,10 +1,6 @@
 # Change Log
-All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/).
-
-## [Unreleased]
+## Unreleased
 
 ### Added
 
@@ -14,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - Cache integration
 - Respawn Option #17
 
-## [0.3.2] - 2017-03-30
+## 0.3.2 - 2017-03-30
 
 ### Added
 
@@ -27,11 +23,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Bug in consumer startup.
 - Bug in Redis queue that would prevent modified jobs from being removed from processing queue.
 
-## [0.3.1] - 2017-03-17
+## 0.3.1 - 2017-03-17
 
 - Fixed bug in Kernel
 
-## [0.3.0] - 2017-03-16
+## 0.3.0 - 2017-03-16
 ### Added
 
 - Tight Cargo Integration, removed pimple integration
@@ -47,7 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Updated dependencies
 - Removed `Queue::fail` as to move that logic to the FailJob module.
 
-## [0.2.0] - 2017-01-19
+## 0.2.0 - 2017-01-19
 ### Added
 
 - Streamlined setup process for jobs
@@ -71,12 +67,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and handler code.
 - Hid the Scheduler and Worker command in favor of Consume Command.
 
-## [0.1.1] - 2016-01-05
+## 0.1.1 - 2016-01-05
 ### Changed
 
 Bumping `krak\mw` library dependency to latest at ^0.3.0
 
-## [0.1.0] - 2016-12-02
+## 0.1.0 - 2016-12-02
 ### Added
 
 - Initial Implementation
