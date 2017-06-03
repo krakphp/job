@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Support for php7 throwables in catching exceptions
+
+### Fixed
+
+- Bug in consume where exceptions weren't being caught
+
 ## 0.3.3 - 2017-06-02
 
 ### Added

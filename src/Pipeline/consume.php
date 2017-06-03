@@ -38,7 +38,9 @@ function catchExceptionConsume() {
         try {
             return $next($job);
         } catch (\Exception $e) {
-            return Result::failed(['exception' => $e->getMessage()]);
+            return Job\failed(['exception' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            return Job\failed(['exception' => $e->getMessage()]);
         }
     };
 }
