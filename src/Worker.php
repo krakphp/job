@@ -13,7 +13,7 @@ class Worker
 
     public function work($input) {
         $consume = $this->consume;
-        $job = unserialize($input);
+        $job = WrappedJob::fromString($input);
         return serialize($consume($job));
     }
 }
