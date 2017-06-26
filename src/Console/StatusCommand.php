@@ -9,11 +9,11 @@ use Krak\Job,
     Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Filesystem\LockHandler;
 
-class RestartCommand extends Command
+class StatusCommand extends Command
 {
     protected function configure() {
-        $this->setName('job:restart')
-            ->setDescription('Restarts a running scheduler.')
+        $this->setName('job:status')
+            ->setDescription('Displays the status of the scheduler.')
             ->addArgument(
                 'instance-name',
                 Input\InputArgument::OPTIONAL,
@@ -23,15 +23,16 @@ class RestartCommand extends Command
 
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output) {
         $output->setVerbosity(Output\OutputInterface::VERBOSITY_VERY_VERBOSE);
+
         $instance_name = $input->getArgument('instance-name') ?: 'scheduler';
 
         $kernel = $this->getHelper('krak_job')->getKernel();
         if (!$kernel->isCacheEnabled()) {
-            $output->writeln('<error>Cannot restart a scheduler without cache enabled.</error>');
+            $output->writeln('<error>Cannot retrieve status of a scheduler without cache enabled.</error>');
             return;
         }
 
         $scheduler_control = $kernel[Job\SchedulerControl::class];
-        $scheduler_control->restartScheduler($instance_name, new ConsoleLogger($output));
+        $scheduler_control->logStatus($instance_name, new ConsoleLogger($output));
     }
 }

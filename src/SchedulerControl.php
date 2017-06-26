@@ -68,6 +68,20 @@ class SchedulerControl
         $logger->info("Scheduler stopped after " . $duration . '.');
     }
 
+    public function logStatus($name, Log\LoggerInterface $logger = null) {
+        $logger = $logger ?: new Log\NullLogger();
+        $cache = SimpleCache\PrefixCache::wrapInstanceName($name, $this->cache);
+
+        $stats = $cache->get('scheduler_stats');
+        if (!$stats || !$stats['running']) {
+            $logger->info('Scheduler is not running.');
+            return;
+        }
+
+        $duration = ScheduleLoop\_formatSeconds(time() - $stats['start']);
+        $logger->info("Scheduler has been running for " . $duration . '.');
+    }
+
     public function resetSchedulerCache($name, Log\LoggerInterface $logger = null) {
         $logger = $logger ?: new Log\NullLogger();
         $cache = SimpleCache\PrefixCache::wrapInstanceName($name, $this->cache);

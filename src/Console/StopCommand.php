@@ -22,6 +22,7 @@ class StopCommand extends Command
     }
 
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output) {
+        $output->setVerbosity(Output\OutputInterface::VERBOSITY_VERY_VERBOSE);
         $instance_name = $input->getArgument('instance-name') ?: 'scheduler';
 
         $kernel = $this->getHelper('krak_job')->getKernel();

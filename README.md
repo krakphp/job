@@ -138,7 +138,7 @@ $kernel['Psr\SimpleCache\CacheInterface'] = function($c) {
 };
 ```
 
-Once cache is enabled, then you'll have access to the following commands: `job:stop`, `job:restart`, and `job:reset`.
+Once cache is enabled, then you'll have access to the following commands: `job:stop`, `job:restart`, `job:status`, and `job:reset`.
 
 ## Concepts
 

@@ -43,6 +43,7 @@ function registerConsole(\Symfony\Component\Console\Application $app, Kernel $ke
             new Console\RestartCommand(),
             new Console\StopCommand(),
             new Console\ResetCommand(),
+            new Console\StatusCommand(),
         ]);
     }
     $app->getHelperSet()->set(new Console\JobHelper($kernel));
