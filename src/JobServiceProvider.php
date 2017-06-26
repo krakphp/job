@@ -14,6 +14,25 @@ class JobServiceProvider implements Cargo\ServiceProvider
             $produce = $c['krak.job.pipeline.produce'];
             return new Dispatch\ProducerDispatch(Mw\compose([$produce]));
         };
+        $c[Queue\Doctrine\JobRepository::class] = function($c) {
+            return new Queue\Doctrine\JobRepository(
+                $c['Doctrine\DBAL\Connection'],
+                $c['krak.job.queue.doctrine.table_name']
+            );
+        };
+        $c[Queue\Doctrine\JobMigration::class] = function($c) {
+            return new Queue\Doctrine\JobMigration(
+                $c['krak.job.queue.doctrine.table_name']
+            );
+        };
+        $c[Queue\Doctrine\DoctrineQueueManager::class] = function($c) {
+            return new Queue\Doctrine\DoctrineQueueManager(
+                $c[Queue\Doctrine\JobRepository::class]
+            );
+        };
+        $c[Queue\Redis\RedisQueueManager::class] = function($c) {
+            return new Queue\Redis\RedisQueueManager($c['Predis\ClientInterface']);
+        };
         $c[Queue\Sqs\SqsQueueManager::class] = function($c) {
             return new Queue\Sqs\SqsQueueManager(
                 $c['Aws\Sqs\SqsClient'],
@@ -21,15 +40,13 @@ class JobServiceProvider implements Cargo\ServiceProvider
                 $c['krak.job.queue.sqs.receive_options']
             );
         };
-        $c[Queue\Redis\RedisQueueManager::class] = function($c) {
-            return new Queue\Redis\RedisQueueManager($c['Predis\ClientInterface']);
-        };
         $c[Queue\Sync\SyncQueueManager::class] = function($c) {
             return new Queue\Sync\SyncQueueManager($c[Worker::class]);
         };
         $c[Queue\QueueManager::class] = function($c) {
             $provider = $c['krak.job.queue_provider'];
             switch ($provider) {
+            case 'doctrine': return $c[Queue\Doctrine\DoctrineQueueManager::class];
             case 'redis': return $c[Queue\Redis\RedisQueueManager::class];
             case 'sqs': return $c[Queue\Sqs\SqsQueueManager::class];
             case 'stub': return new Queue\Stub\StubQueueManager();
@@ -97,6 +114,7 @@ class JobServiceProvider implements Cargo\ServiceProvider
         $c['krak.job.debug'] = false;
         $c['krak.job.default_queue_name'] = 'jobs';
         $c['krak.job.queue_provider'] = 'sync';
+        $c['krak.job.queue.doctrine.table_name'] = 'krak_jobs';
         $c['krak.job.queue.sqs.queue_url_map'] = [];
         $c['krak.job.queue.sqs.receive_options'] = [];
 

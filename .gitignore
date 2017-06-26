@@ -1,3 +1,4 @@
 /vendor/
 /composer.lock
 /playground.php
+/test/functional/jobs.db

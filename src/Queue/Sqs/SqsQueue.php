@@ -23,7 +23,7 @@ class SqsQueue extends Job\Queue\AbstractQueue
     public function enqueue(Job\WrappedJob $job) {
         $params = [
             'QueueUrl' => $this->queue_url,
-            'DelayedSeconds' => isset($job->payload['delay']) ? $job->payload['delay'] : null,
+            'DelayedSeconds' => $job->getDelay(),
             'MessageBody' => base64_encode((string) $job),
         ];
         $params = array_merge(
@@ -46,10 +46,11 @@ class SqsQueue extends Job\Queue\AbstractQueue
 
         $message = array_shift($this->cached_messages);
         $job = Job\WrappedJob::fromString(base64_decode($message['Body']));
-        return $job->withAddedPayload(['_sqs_message' => [
-            'MessageId' => $message['MessageId'],
-            'ReceiptHandle' => $message['ReceiptHandle'],
-        ]]);
+        return $job->withQueueProvider('sqs')
+            ->withAddedPayload(['_sqs_message' => [
+                'MessageId' => $message['MessageId'],
+                'ReceiptHandle' => $message['ReceiptHandle'],
+            ]]);
     }
 
     public function complete(Job\WrappedJob $job) {

@@ -13,6 +13,7 @@ class EchoJob implements Job\Job
     }
 
     public function handle(SplStack $stack, Job\WrappedJob $job) {
+        sleep($this->id);
         return Job\complete([
             'id' => $this->id,
             'count' => $stack->count(),
