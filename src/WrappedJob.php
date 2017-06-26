@@ -25,10 +25,18 @@ class WrappedJob
     }
 
     public function __toString() {
-        return serialize($this);
+        return json_encode([
+            'job' => serialize($this->job),
+            'payload' => $this->payload,
+        ]);
     }
 
     public static function fromString($serialized) {
-        return unserialize($serialized);
+        $wrapped_job = json_decode($serialized, true);
+
+        return new self(
+            unserialize($wrapped_job['job']),
+            $wrapped_job['payload']
+        );
     }
 }

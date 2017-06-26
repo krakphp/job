@@ -24,12 +24,16 @@ class JobServiceProvider implements Cargo\ServiceProvider
         $c[Queue\Redis\RedisQueueManager::class] = function($c) {
             return new Queue\Redis\RedisQueueManager($c['Predis\ClientInterface']);
         };
+        $c[Queue\Sync\SyncQueueManager::class] = function($c) {
+            return new Queue\Sync\SyncQueueManager($c[Worker::class]);
+        };
         $c[Queue\QueueManager::class] = function($c) {
             $provider = $c['krak.job.queue_provider'];
             switch ($provider) {
             case 'redis': return $c[Queue\Redis\RedisQueueManager::class];
             case 'sqs': return $c[Queue\Sqs\SqsQueueManager::class];
             case 'stub': return new Queue\Stub\StubQueueManager();
+            case 'sync': return $c[Queue\Sync\SyncQueueManager::class];
             default:
                 throw new \InvalidArgumentException('Invalid Queue Provider (krak.job.queue_provider) given.');
             }
@@ -75,7 +79,7 @@ class JobServiceProvider implements Cargo\ServiceProvider
                     'objects' => [$c],
                     'container' => $c->toInterop()
                 ])
-            ])->push(Pipeline\catchExceptionConsume(), 1);
+            ])->push(Pipeline\catchExceptionConsume($c['krak.job.debug']), 1);
         };
         $c['krak.job.pipeline.produce'] = function($c) {
             return mw\stack([
@@ -90,8 +94,9 @@ class JobServiceProvider implements Cargo\ServiceProvider
             'max_jobs' => 10,
             'sleep' => 10,
         ];
+        $c['krak.job.debug'] = false;
         $c['krak.job.default_queue_name'] = 'jobs';
-        $c['krak.job.queue_provider'] = 'stub';
+        $c['krak.job.queue_provider'] = 'sync';
         $c['krak.job.queue.sqs.queue_url_map'] = [];
         $c['krak.job.queue.sqs.receive_options'] = [];
 

@@ -33,14 +33,18 @@ function invokeJobConsume(AutoArgs\AutoArgs $auto_args, array $context = []) {
     };
 }
 
-function catchExceptionConsume() {
-    return function(Job\WrappedJob $job, $next) {
+function catchExceptionConsume($show_stack_trace) {
+    return function(Job\WrappedJob $job, $next) use ($show_stack_trace) {
         try {
             return $next($job);
         } catch (\Exception $e) {
-            return Job\failed(['exception' => $e->getMessage()]);
+
         } catch (\Throwable $e) {
-            return Job\failed(['exception' => $e->getMessage()]);
+
         }
+
+        return $show_stack_trace
+            ? Job\failed(['exception' => (string) $e])
+            : Job\failed(['exception' => $e->getMessage()]);
     };
 }

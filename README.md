@@ -183,6 +183,7 @@ The Queuing module handles the actual queueing implementations. There are two ma
 - Redis
 - Sqs
 - Stub
+- Sync
 
 #### Redis
 
@@ -232,6 +233,24 @@ You can configure how you send messages with configuration when you wrap and dis
 
 ```php
 $dispatch->wrap(new MyJob())->with('sqs', ['AnySendMessageParamer' => 'Value'])->dispatch();
+```
+
+#### Stub
+
+The stub queue is essentially a noop queue provider. It doesn't enqueue or consume any jobs given to it.
+
+```php
+$kernel['krak.job.queue_provider'] = 'stub';
+```
+
+#### Sync
+
+The sync(chronous) queue provider will consume your jobs synchronously in the calling thread instead of dispatching them to an external service to be consumed in a different process asynchronously. This is useful for debugging and development purposes.
+
+This is also the default queue provider since it will work out of the box and requires no configuration.
+
+```php
+$kernel['krak.job.queue_provider'] = 'sync';
 ```
 
 ## Cookbook

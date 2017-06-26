@@ -12,7 +12,7 @@ $kernel['Aws\Sqs\SqsClient'] = function() {
         'region' => 'us-west-1',
     ]);
 };
-$kernel['krak.job.queue_provider'] = 'redis';
+// $kernel['krak.job.queue_provider'] = 'redis';
 $kernel['Psr\SimpleCache\CacheInterface'] = function($c) {
     return new Symfony\Component\Cache\Simple\RedisCache(
         $c['Predis\ClientInterface']
