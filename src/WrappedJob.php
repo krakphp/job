@@ -39,4 +39,44 @@ class WrappedJob
             $wrapped_job['payload']
         );
     }
+
+    public function has($key) {
+        return array_key_exists($key, $this->payload);
+    }
+
+    public function get($key, $default = null) {
+        if (!$this->has($key)) {
+            return $default;
+        }
+
+        return $this->payload[$key];
+    }
+
+    public function withName($name) {
+        return $this->withAddedPayload(['name' => $name]);
+    }
+    public function getName() {
+        return $this->get('name');
+    }
+
+    public function withQueue($name) {
+        return $this->withAddedPayload(['queue' => $name]);
+    }
+    public function getQueue() {
+        return $this->get('queue');
+    }
+
+    public function withDelay($delay) {
+        return $this->withAddedPayload(['delay' => $delay]);
+    }
+    public function getDelay() {
+        return $this->get('delay');
+    }
+
+    public function withQueueProvider($queue_provider) {
+        return $this->withAddedPayload(['queue_provider' => $queue_provider]);
+    }
+    public function getQueueProvider() {
+        return $this->get('queue_provider');
+    }
 }

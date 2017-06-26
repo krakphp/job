@@ -12,7 +12,15 @@ $kernel['Aws\Sqs\SqsClient'] = function() {
         'region' => 'us-west-1',
     ]);
 };
-// $kernel['krak.job.queue_provider'] = 'redis';
+$kernel['Doctrine\DBAL\Connection'] = function() {
+    return Doctrine\DBAL\DriverManager::getConnection([
+        'driver' => 'pdo_sqlite',
+        'user' => 'root',
+        'password' => 'pass',
+        'path' => './jobs.db',
+    ]);
+};
+$kernel['krak.job.queue_provider'] = 'doctrine';
 $kernel['Psr\SimpleCache\CacheInterface'] = function($c) {
     return new Symfony\Component\Cache\Simple\RedisCache(
         $c['Predis\ClientInterface']

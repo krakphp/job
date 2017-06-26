@@ -15,7 +15,7 @@ class SyncQueue extends Job\Queue\AbstractQueue
 
     /** push a job onto the queue */
     public function enqueue(Job\WrappedJob $job) {
-        $res = unserialize($this->worker->work((string) $job));
+        $res = unserialize($this->worker->work((string) $job->withQueueProvider('sync')));
         if ($res->isFailed()) {
             throw new \RuntimeException("Job Failed - " . json_encode($res, JSON_PRETTY_PRINT));
         }

@@ -34,9 +34,10 @@ class RedisQueue extends Job\Queue\AbstractQueue
         $hash = md5($job);
         $this->hashed_job_map[$hash] = $job;
         $job = Job\WrappedJob::fromString($job);
-        return $job->withAddedPayload([
-            '_job_hash' => $hash
-        ]);
+        return $job->withQueueProvider('redis')
+            ->withAddedPayload([
+                '_job_hash' => $hash
+            ]);
     }
 
     public function complete(Job\WrappedJob $job) {

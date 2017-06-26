@@ -6,14 +6,11 @@ use Krak\Job;
 
 function queueProduce(Job\Queue\QueueManager $manager) {
     return function($job) use ($manager) {
-        $payload = $job->payload;
-
-        if (!isset($payload['queue'])) {
-            throw new \RuntimeException('No queue name found for job: ' . $job->payload['name']);
+        if (!$job->getQueue()) {
+            throw new \RuntimeException('No queue name found for job: ' . $job->getName());
         }
 
-        $queue_name = $payload['queue'];
-        $queue = $manager->getQueue($queue_name);
+        $queue = $manager->getQueue($job->getQueue());
         $queue->enqueue($job);
     };
 }
@@ -34,18 +31,18 @@ function autoQueueNameProduce($prefix, $sep = '.') {
 
 function classNameProduce() {
     return function(Job\WrappedJob $wrapped, $next) {
-        if (isset($wrapped->payload['name'])) {
+        if ($wrapped->getName()) {
             return $next($wrapped);
         }
 
-        return $next($wrapped->withAddedPayload(['name' => get_class($wrapped->job)]));
+        return $next($wrapped->withName(get_class($wrapped->job)));
     };
 }
 
 /** map a job's class name to name field in the wrapped job payload */
 function classToNameProduce($prefix = '', $sep = '.') {
     return function(Job\WrappedJob $wrapped, $next) use ($prefix, $sep) {
-        if (isset($wrapped->payload['name'])) {
+        if ($wrapped->getName()) {
             return $next($wrapped);
         }
 
@@ -55,34 +52,34 @@ function classToNameProduce($prefix = '', $sep = '.') {
         }
 
         $name = strtolower(str_replace('\\', $sep, $cls));
-        return $next($wrapped->withAddedPayload(['name' => $name]));
+        return $next($wrapped->withName($name));
     };
 }
 
 /** defaults the queue name to the given name if one does not exist */
 function defaultQueueNameProduce($queue) {
     return function(Job\WrappedJob $wrapped, $next) use ($queue) {
-        if (isset($wrapped->payload['queue'])) {
+        if ($wrapped->getQueue()) {
             return $next($wrapped);
         }
 
-        return $next($wrapped->withAddedPayload(['queue' => $queue]));
+        return $next($wrapped->withQueue($queue));
     };
 }
 
 /** determine the queue name from the prefix by separator */
 function queueNamePrefixProduce($sep = '.') {
     return function(Job\WrappedJob $wrapped, $next) use ($sep) {
-        if (isset($wrapped->payload['queue']) || !isset($wrapped->payload['name'])) {
+        if ($wrapped->getQueue() || !$wrapped->getName()) {
             return $next($wrapped);
         }
 
-        $parts = explode($sep, $wrapped->payload['name']);
+        $parts = explode($sep, $wrapped->getName());
         if (count($parts) == 1) {
             // queue name could not be determined because there wasn't a prefix
             return $next($wrapped);
         }
 
-        return $next($wrapped->withAddedPayload(['queue' => $parts[0]]));
+        return $next($wrapped->withQueue($parts[0]));
     };
 }

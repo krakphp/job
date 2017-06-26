@@ -180,10 +180,54 @@ The Queuing module handles the actual queueing implementations. There are two ma
 
 **Supported Queues**
 
+- Doctrine
 - Redis
 - Sqs
 - Stub
 - Sync
+
+#### Doctrine
+
+Doctrine requires the `doctrine/dbal` library to be installed.
+
+```php
+$kernel['Doctrine\DBAL\Connection'] = function() {
+    return Doctrine\DBAL\DriverManager::getConnection([
+        /* connection params */
+    ]);
+};
+$kernel['krak.job.queue_provider'] = 'doctrine';
+$kernel['krak.job.queue.doctrine.table_name'] = 'krak_jobs';
+```
+
+Once that's setup, you'll need to perform the database migration to initialize the jobs table. The `Krak\Job\Queue\Doctrine\JobMigration` class is a utility that will facilitate running the migration.
+
+If you already using Doctrine Migrations in your project, you can use simply use the following methods:
+
+```php
+// in your migration class
+public function up(Schema $schema) {
+    $migration = new Krak\Job\Queue\Doctrine\JobMigration('krak_jobs');
+    $migration->up($schema);
+}
+
+public function down(Schema $schema) {
+    $migration = new Krak\Job\Queue\Doctrine\JobMigration('krak_jobs');
+    $migration->down($schema);
+}
+```
+
+Also, you can simply run the following php code to migrate your table up or down
+
+```php
+$conn = $kernel['Doctrine\DBAL\Connection'];
+$migration = $kernel['Krak\Job\Queue\Doctrine\JobMigration'];
+
+// up
+$migration->migrateUp($conn);
+// or down
+// $migration->migrateDown($conn);
+```
 
 #### Redis
 
