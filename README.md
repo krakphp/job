@@ -81,6 +81,30 @@ class ProcessJob implements Job
 
 Arguments will automatically wired into the handle method using the AutoArgs package. The Job instance will be serialized, so make sure that the properties of the Job are serializable. It'd also be a good idea to keep the amount of data in a job as small as possible.
 
+You can also implement the `Krak\Job\PipeWrappedJob` interface if you want to customize the wrapped job.
+
+```php
+<?php
+
+use Krak\Job;
+
+class ProcessJob implements Job\Job, Job\PipeWrappedJob
+{
+    public function pipe(Job\WrappedJob $wrapped) {
+        return $wrapped->withName('my_custom_job_name')
+            ->withQueue('my_custom_queue')
+            ->withDelay(3600)
+            ->withAddedPayload([
+                'custom_data' => 1,
+            ]);
+    }
+}
+```
+
+When the job is dispatched and produced, the pipe function will be called and will configure the wrapped job instance.
+
+And then as a final convenience, we provide the `Krak\Job\AbstractJob` which you can extend which already implements `Krak\Job\Job` and `Krak\Job\PipeWrappedJob` and provides default implementations.
+
 ### Dispatch a Job
 
 Dispatching jobs is easy using the `Krak\Job\Dispatch`.
