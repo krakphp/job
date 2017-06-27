@@ -48,3 +48,9 @@ function registerConsole(\Symfony\Component\Console\Application $app, Kernel $ke
     }
     $app->getHelperSet()->set(new Console\JobHelper($kernel));
 }
+
+function mergeConfigOptions($parent_opts, $opts) {
+    unset($parent_opts['schedulers']);
+    unset($parent_opts['name']);
+    return $opts + $parent_opts;
+}

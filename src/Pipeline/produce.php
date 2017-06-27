@@ -4,14 +4,17 @@ namespace Krak\Job\Pipeline;
 
 use Krak\Job;
 
-function queueProduce(Job\Queue\QueueManager $manager) {
-    return function($job) use ($manager) {
+function queueProduce(Job\Queue\QueueManagerResolver $resolver, $queue_provider_map) {
+    return function($job) use ($resolver, $queue_provider_map) {
         if (!$job->getQueue()) {
             throw new \RuntimeException('No queue name found for job: ' . $job->getName());
         }
 
-        $queue = $manager->getQueue($job->getQueue());
-        $queue->enqueue($job);
+        $queue_provider = $queue_provider_map[$job->getQueue()];
+        $queue = $resolver->resolveQueueManager($queue_provider)
+            ->getQueue($job->getQueue());
+
+        return $queue->enqueue($job);
     };
 }
 

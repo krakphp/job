@@ -43,17 +43,12 @@ class JobServiceProvider implements Cargo\ServiceProvider
         $c[Queue\Sync\SyncQueueManager::class] = function($c) {
             return new Queue\Sync\SyncQueueManager($c[Worker::class]);
         };
+        $c[Queue\QueueManagerResolver::class] = function($c) {
+            return new Queue\QueueManagerResolver($c);
+        };
         $c[Queue\QueueManager::class] = function($c) {
             $provider = $c['krak.job.queue_provider'];
-            switch ($provider) {
-            case 'doctrine': return $c[Queue\Doctrine\DoctrineQueueManager::class];
-            case 'redis': return $c[Queue\Redis\RedisQueueManager::class];
-            case 'sqs': return $c[Queue\Sqs\SqsQueueManager::class];
-            case 'stub': return new Queue\Stub\StubQueueManager();
-            case 'sync': return $c[Queue\Sync\SyncQueueManager::class];
-            default:
-                throw new \InvalidArgumentException('Invalid Queue Provider (krak.job.queue_provider) given.');
-            }
+            return $c[Queue\QueueManagerResolver::class]->resolveQueueManager($provider);
         };
         $c[ProcessManager\ProcessManager::class] = function($c) {
             return new ProcessManager\SymfonyProcessManager();
@@ -62,7 +57,7 @@ class JobServiceProvider implements Cargo\ServiceProvider
             $loop = $c['krak.job.schedule_loop'];
             return new Scheduler(
                 $c[ProcessManager\ProcessManager::class],
-                $c[Queue\QueueManager::class],
+                $c[Queue\QueueManagerResolver::class],
                 Mw\compose([
                     Mw\guard('No schedulerLoop was able to resolve a response. Please check your configuration.'),
                     $loop
@@ -100,7 +95,7 @@ class JobServiceProvider implements Cargo\ServiceProvider
         };
         $c['krak.job.pipeline.produce'] = function($c) {
             return mw\stack([
-                Pipeline\queueProduce($c[Queue\QueueManager::class]),
+                Pipeline\queueProduce($c[Queue\QueueManagerResolver::class], $c->createQueueProviderMap()),
                 Pipeline\timestampProduce(),
                 Pipeline\classNameProduce(),
                 Pipeline\defaultQueueNameProduce($c['krak.job.default_queue_name']),

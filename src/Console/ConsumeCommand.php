@@ -29,7 +29,7 @@ class ConsumeCommand extends Command
             $output->writeln('<error>A scheduler of this instance is already running.</error>');
             return 0;
         }
-        $options = $this->getHelper('krak_job')->getKernel()['krak.job.config'];
+        $options = $this->getHelper('krak_job')->getKernel()->getConfig();
         $options['_instance_name'] = $instance_name;
 
         $argv = $_SERVER['argv'];

@@ -42,12 +42,13 @@ $kernel->config([
             'queue' => 'jobs1',
             'sleep' => 2,
             'ttl' => 10,
-            'respawn' => true
+            'respawn' => true,
+            'queue_provider' => 'doctrine',
         ],
         [
             'queue' => 'jobs2',
             'sleep' => 5,
-            'ttl' => 30
+            'queue_provider' => 'redis',
         ]
     ],
     'sleep' => 2,

@@ -13,13 +13,13 @@ use function Krak\Mw\compose;
 class Scheduler
 {
     private $process_manager;
-    private $queue_manager;
+    private $queue_manager_resolver;
     private $loop;
     private $cache;
 
-    public function __construct(ProcessManager\ProcessManager $process_manager, Queue\QueueManager $queue_manager, $loop, CacheInterface $cache = null) {
+    public function __construct(ProcessManager\ProcessManager $process_manager, Queue\QueueManagerResolver $queue_manager_resolver, $loop, CacheInterface $cache = null) {
         $this->process_manager = $process_manager;
-        $this->queue_manager = $queue_manager;
+        $this->queue_manager_resolver = $queue_manager_resolver;
         $this->loop = $loop;
         $this->cache = $cache;
     }
@@ -29,7 +29,9 @@ class Scheduler
 
         $params = new ScheduleLoop\ScheduleLoopParams();
         $params->process_manager = $this->process_manager;
-        $params->queue_manager = new Queue\CachedQueueManager($this->queue_manager);
+        $params->queue_manager = new Queue\CachedQueueManager(
+            $this->queue_manager_resolver->resolveQueueManager($options['queue_provider'])
+        );
         $params->logger = $logger;
         $params->output = $output;
         $params->options = $options;
