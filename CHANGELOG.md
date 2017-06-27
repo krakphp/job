@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2017-06-26
+
 ### Added
 
 - Synchronous Queue Support #11
