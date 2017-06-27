@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.1 - 2017-06-27
+
 ### Added
 
 - Configurable Jobs #30
