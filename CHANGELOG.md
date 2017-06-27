@@ -8,6 +8,7 @@
 - Doctrine Queue Support #12
 - WrappedJob Helper methods
 - Job Status Command #23
+- Multiple Queue Providers #21
 
 ## 0.3.4 - 2017-06-03
 
