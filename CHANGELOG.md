@@ -9,6 +9,8 @@
 - WrappedJob Helper methods
 - Job Status Command #23
 - Multiple Queue Providers #21
+- Batched Workers #22
+- Documentation on config options
 
 ## 0.3.4 - 2017-06-03
 

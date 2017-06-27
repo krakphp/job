@@ -12,8 +12,6 @@ class Worker
     }
 
     public function work($input) {
-        $consume = $this->consume;
-        $job = WrappedJob::fromString($input);
-        return serialize($consume($job));
+        return serialize(array_map($this->consume, unserializeJobs($input)));
     }
 }
