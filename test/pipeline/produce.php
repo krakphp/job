@@ -22,7 +22,7 @@ describe('#pipeJobProduce', function() {
             $produce,
         ]);
 
-        $wrapped = new Job\WrappedJob(new Job\TestFixtures\EchoJob(1));
+        $wrapped = new Job\WrappedJob(new class() implements Job\Job {});
         $new_wrapped = $handler($wrapped);
         assert($wrapped === $new_wrapped);
     });
