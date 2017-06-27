@@ -298,33 +298,6 @@ This is also the default queue provider since it will work out of the box and re
 $kernel['krak.job.queue_provider'] = 'sync';
 ```
 
-## Cookbook
-
-### Async Scheduling
-
-To perform schedule multiple queues at a time, update the kernel config like this:
-
-```php
-$kernel->config([
-    'name' => 'Master Scheduler',
-    'sleep' => 10,
-    'schedulers' => [
-        [
-            'queue' => 'emails',
-            'max_jobs' => 20,
-            'respawn' => true, // will be respawned after exiting
-            'ttl' => 50,
-        ],
-        [
-            'queue' => 'orders',
-            'max_retry' => 3,
-        ]
-    ]
-]);
-```
-
-This will create a master scheduler that will then manage two schedulers which manage a different queue. This will launch two separate processes that manage each queue, so the processing of each queue will be completely asynchronous.
-
 ## Configuration Options
 
 ### sleep
@@ -354,3 +327,42 @@ Max number of retries before just giving up on a failed job
 This is max number of jobs to process in a given batch. Every worker process that is created handles a batch of jobs. The higher the batch size helps lower the memory footprint of the system since fewer processes will be created when the batch size is higher.
 
 This works great for jobs that finish execution relatively quickly (less than 5 seconds); however, if the jobs take much longer to execute, then you're better off increasing the max_jobs and lowering this value to around 1.
+
+## Cookbook
+
+### Async Scheduling
+
+To perform schedule multiple queues at a time, update the kernel config like this:
+
+```php
+$kernel->config([
+    'name' => 'Master Scheduler',
+    'sleep' => 10,
+    'schedulers' => [
+        [
+            'queue' => 'emails',
+            'max_jobs' => 20,
+            'respawn' => true, // will be respawned after exiting
+            'ttl' => 50,
+        ],
+        [
+            'queue' => 'orders',
+            'max_retry' => 3,
+        ]
+    ]
+]);
+```
+
+This will create a master scheduler that will then manage two schedulers which manage a different queue. This will launch two separate processes that manage each queue, so the processing of each queue will be completely asynchronous.
+
+### Additional Logging
+
+You can enable logging by defining the `Psr\Log\LoggerInterface` service into the kernel container.
+
+```php
+$kernel[Psr\Log\LoggerInterface::class] = function() {
+    return MyPsrLogger();
+};
+```
+
+Any scheduler logging will then also go to defined logger.
