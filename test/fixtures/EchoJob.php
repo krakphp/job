@@ -5,9 +5,10 @@ namespace Krak\Job\TestFixtures;
 use Krak\Job;
 use SplStack;
 
-class EchoJob implements Job\Job
+class EchoJob implements Job\Job, Job\PipeWrappedJob
 {
-    private $id;
+    public $id;
+
     public function __construct($id) {
         $this->id = $id;
     }
@@ -19,5 +20,9 @@ class EchoJob implements Job\Job
             'count' => $stack->count(),
             'payload' => $job->payload,
         ]);
+    }
+
+    public function pipe(Job\WrappedJob $wrapped) {
+        return $wrapped->withName('echo_job_' . $wrapped->job->id);
     }
 }

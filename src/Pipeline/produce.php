@@ -18,6 +18,16 @@ function queueProduce(Job\Queue\QueueManagerResolver $resolver, $queue_provider_
     };
 }
 
+function pipeJobProduce() {
+    return function(Job\WrappedJob $wrapped, $next) {
+        if ($wrapped->job instanceof Job\PipeWrappedJob) {
+            $wrapped = $wrapped->job->pipe($wrapped);
+        }
+
+        return $next($wrapped);
+    };
+}
+
 /** timestamps the job */
 function timestampProduce() {
     return function($job, $next) {

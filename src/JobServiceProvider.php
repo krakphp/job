@@ -97,6 +97,7 @@ class JobServiceProvider implements Cargo\ServiceProvider
         $c['krak.job.pipeline.produce'] = function($c) {
             return mw\stack([
                 Pipeline\queueProduce($c[Queue\QueueManagerResolver::class], $c->createQueueProviderMap()),
+                Pipeline\pipeJobProduce(),
                 Pipeline\timestampProduce(),
                 Pipeline\classNameProduce(),
                 Pipeline\defaultQueueNameProduce($c['krak.job.default_queue_name']),

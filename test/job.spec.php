@@ -12,6 +12,9 @@ describe('Krak Job', function() {
     describe('Queue', function() {
         require_once __DIR__ . '/queue.php';
     });
+    describe('Pipeline', function() {
+        require_once __DIR__ . '/pipeline/produce.php';
+    });
     describe('WrappedJob', function() {
         describe('->__toString', function() {
             it('serializes itself to a string', function() {
