@@ -3,6 +3,7 @@
 namespace Krak\Job\ScheduleLoop;
 
 use Krak\Mw;
+use Krak\Job;
 
 function schedulerScheduleLoop($loop = null) {
     $loop = $loop ?: mw\group([
@@ -33,11 +34,7 @@ function schedulerDispatchScheduleLoop() {
 
         $schedulers = $params->get('schedulers');
         foreach ($schedulers as $options) {
-            // merge the current options with the child options
-            $popts = $params->options;
-            unset($popts['schedulers']);
-            unset($popts['name']);
-            $options = $options + $popts;
+            $options = Job\mergeConfigOptions($params->options, $options);
 
             $params->process_manager->launch(
                 $params->getSchedulerCommand(),

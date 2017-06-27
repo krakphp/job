@@ -4,6 +4,7 @@ namespace Krak\Job;
 
 use Krak\Cargo;
 use Psr\SimpleCache\CacheInterface;
+use iter;
 
 class Kernel extends Cargo\Container\ContainerDecorator implements Queue\QueueManager
 {
@@ -42,5 +43,34 @@ class Kernel extends Cargo\Container\ContainerDecorator implements Queue\QueueMa
 
     public function isCacheEnabled() {
         return $this->has(CacheInterface::class);
+    }
+
+    /** return the config and set the queue provider */
+    public function getConfig() {
+        $config = $this['krak.job.config'];
+        if (!isset($config['queue_provider'])) {
+            $config['queue_provider'] = $this['krak.job.queue_provider'];
+        }
+        return $config;
+    }
+
+    public function createQueueProviderMap() {
+        return iter\reduce(function($acc, $config) {
+            $acc[$config['queue']] = $config['queue_provider'];
+            return $acc;
+        }, $this->queueConfigs(), []);
+    }
+
+    /** return only the normalized queue configurations */
+    private function queueConfigs() {
+        $config = $this->getConfig();
+        if (!isset($config['schedulers'])) {
+            yield $config;
+            return;
+        }
+
+        foreach ($config['schedulers'] as $child_config) {
+            yield mergeConfigOptions($config, $child_config);
+        }
     }
 }

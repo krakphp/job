@@ -22,3 +22,19 @@ describe('->dispatch', function() {
         assert($res === 1);
     });
 });
+describe('->createQueueProviderMap', function() {
+    it('creates a queue provider map', function() {
+        $kernel = new Job\Kernel();
+        $kernel->config([
+            'schedulers' => [
+                ['queue' => 'jobs1'],
+                ['queue' => 'jobs2', 'queue_provider' => 'redis'],
+            ]
+        ]);
+        $kernel['krak.job.queue_provider'] = 'doctrine';
+        assert($kernel->createQueueProviderMap() == [
+            'jobs1' => 'doctrine',
+            'jobs2' =>'redis',
+        ]);
+    });
+});

@@ -9,6 +9,7 @@ describe('SyncQueue', function() {
             $worker = new Job\Worker(function($job) use (&$work_completed) {
                 $work_completed = true;
                 assert($job->job->id === 1);
+                return Job\complete();
             });
 
             $q = new Job\Queue\Sync\SyncQueue('queue', $worker);
