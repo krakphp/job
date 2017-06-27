@@ -35,11 +35,12 @@ You can configure the kernel by wrapping any of the services defined in the cont
 ```php
 // configure the scheduling loop
 $kernel->config([
-    'name' => 'Jobs Queue',
-    'sleep' => 10,
-    'ttl' => 50,
-    'max_jobs' => 10,
-    'max_retry' => 3,
+    'name' => 'jobs', // name of the queue
+    'sleep' => 10, // duration in seconds the scheduler will sleep for after every iteration
+    'ttl' => 50, // max duration of the scheduler before dying
+    'max_jobs' => 10, // max number of processes to launch at once
+    'max_retry' => 3, // max number of retries before just giving up on a failed job
+    'batch_size' => 5, // max number of jobs to process in a given batch
 ]);
 // configure the queue manager
 $kernel->queueManager(function($qm, $c) {
@@ -323,3 +324,33 @@ $kernel->config([
 ```
 
 This will create a master scheduler that will then manage two schedulers which manage a different queue. This will launch two separate processes that manage each queue, so the processing of each queue will be completely asynchronous.
+
+## Configuration Options
+
+### sleep
+
+The longer the process will sleep, the less resources it will take. The queue provider will be pulled once every `sleep` number of seconds. If you plan on only processing a few jobs on the given queue, then you can set this to a higher value. Conversely, if the queue will be processing at a high throughput, you'll need to set this to smaller value like 1 or 2 seconds.
+
+### ttl
+
+This is how long in seconds the scheduler should run before stopping. This is useful in conjunction with the `respawn` option to have the application state refresh. For example, in development, you might want to set a short ttl with a restart so that you don't have to keep restarting the scheduler to test changes.
+
+### respawn
+
+The respawn is a boolean that determines if a parent scheduler will respawn a child queue scheduler once it's been killed.
+
+### max_jobs
+
+This is the maximum number of worker processes that will be running at the same time. If your jobs take a longer time for completion or if the queue will be consuming a very high number of jobs, then setting this value to greater than 1 can greatly speed up the overall processing of the jobs because they will be done in parallel.
+
+Keep in mind that each process consumes memory and has a bit of overhead so this should be tuned with that in mind.
+
+### max_retry
+
+Max number of retries before just giving up on a failed job
+
+### batch_size
+
+This is max number of jobs to process in a given batch. Every worker process that is created handles a batch of jobs. The higher the batch size helps lower the memory footprint of the system since fewer processes will be created when the batch size is higher.
+
+This works great for jobs that finish execution relatively quickly (less than 5 seconds); however, if the jobs take much longer to execute, then you're better off increasing the max_jobs and lowering this value to around 1.

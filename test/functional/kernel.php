@@ -44,11 +44,13 @@ $kernel->config([
             'ttl' => 10,
             'respawn' => true,
             'queue_provider' => 'doctrine',
+            'batch_size' => 10
         ],
         [
             'queue' => 'jobs2',
             'sleep' => 5,
             'queue_provider' => 'redis',
+            'batch_size' => 10,
         ]
     ],
     'sleep' => 2,

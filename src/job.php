@@ -54,3 +54,13 @@ function mergeConfigOptions($parent_opts, $opts) {
     unset($parent_opts['name']);
     return $opts + $parent_opts;
 }
+
+function serializeJobs(array $jobs) {
+    return json_encode(array_map('strval', $jobs));
+}
+
+function unserializeJobs($input) {
+    return array_map(function($input) {
+        return WrappedJob::fromString($input);
+    }, json_decode($input, true));
+}

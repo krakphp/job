@@ -2,10 +2,6 @@
 
 Mockery::globalHelpers();
 
-class TestJob implements Krak\Job\Job {
-    public $id;
-}
-
 describe('Krak Job', function() {
     describe('ProcessManager', function() {
         require_once __DIR__ . '/process-manager.php';
@@ -18,20 +14,42 @@ describe('Krak Job', function() {
     });
     describe('WrappedJob', function() {
         describe('->__toString', function() {
-            $job = new TestJob();
-            $job->id = 1;
-            $wrapped = new Krak\Job\WrappedJob($job, ['name' => 1]);
-            assert((string) $wrapped == json_encode([
-                "job" => serialize($job),
-                "payload" => ['name' => 1]
-            ]));
+            it('serializes itself to a string', function() {
+                $job = new Krak\Job\TestFixtures\AcmeJob(1);
+                $wrapped = new Krak\Job\WrappedJob($job, ['name' => 1]);
+                assert((string) $wrapped == json_encode([
+                    "job" => serialize($job),
+                    "payload" => ['name' => 1]
+                ]));
+            });
         });
         describe('::fromString', function() {
-            $job = new TestJob();
-            $job->id = 1;
-            $wrapped = new Krak\Job\WrappedJob($job, ['name' => 1]);
-            $wrapped = Krak\Job\WrappedJob::fromString((string) $wrapped);
-            assert($wrapped->job instanceof TestJob && $wrapped->payload['name'] == 1);
+            it('unserializes to a wrapped job', function() {
+                $job = new Krak\Job\TestFixtures\AcmeJob(1);
+                $wrapped = new Krak\Job\WrappedJob($job, ['name' => 1]);
+                $wrapped = Krak\Job\WrappedJob::fromString((string) $wrapped);
+                assert($wrapped->job instanceof Krak\Job\TestFixtures\AcmeJob && $wrapped->payload['name'] == 1);
+            });
+        });
+    });
+    describe('#serializeJobs', function() {
+        it('serializes a set of jobs', function() {
+            $a = new class() {
+                public function __toString() {
+                    return '1';
+                }
+            };
+            $serialized = Krak\Job\serializeJobs([$a, clone $a]);
+            assert($serialized == '["1","1"]');
+        });
+    });
+    describe('#unseralizeJobs', function() {
+        it('unserializes a set of jobs', function() {
+            $job = new Krak\Job\TestFixtures\AcmeJob(1);
+            $wrapped = new Krak\Job\WrappedJob($job);
+            $serialized = Krak\Job\serializeJobs([$wrapped, $wrapped]);
+            $unwrapped = Krak\Job\unserializeJobs($serialized);
+            assert(count($unwrapped) == 2 && $unwrapped[1]->job->id == 1);
         });
     });
 });

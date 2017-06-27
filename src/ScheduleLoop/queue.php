@@ -2,8 +2,9 @@
 
 namespace Krak\Job\ScheduleLoop;
 
-use Krak\Job\Result,
-    Krak\Mw;
+use Krak\Job;
+use Krak\Mw;
+use iter;
 
 function queueScheduleLoop($fail_job = null, $loop = null) {
     $loop = $loop ?: mw\group([
@@ -28,6 +29,7 @@ function queueScheduleLoop($fail_job = null, $loop = null) {
 function queueJobDispatchScheduleLoop() {
     return function($params, $next) {
         $max_jobs = $params->get('max_jobs', INF);
+        $batch_size = $params->get('batch_size', 1);
 
         $cur_jobs = count($params->process_manager);
         if ($cur_jobs >= $max_jobs || $params->get('kill', false)) {
@@ -35,15 +37,14 @@ function queueJobDispatchScheduleLoop() {
         }
 
         $queue = $params->queue();
+        $batch = [];
         while ($job = $queue->dequeue()) {
-            $params->logger->notice("Starting Job {name}", [
-                'name' => $job->payload['name'],
-            ]);
-            $params->process_manager->launch(
-                $params->getWorkerCommand(),
-                (string) $job,
-                $job
-            );
+            $batch[] = $job;
+
+            if (count($batch) >= $batch_size) {
+                _batchJobs($batch, $params);
+                $batch = [];
+            }
 
             $cur_jobs = count($params->process_manager);
             if ($cur_jobs >= $max_jobs) {
@@ -52,8 +53,26 @@ function queueJobDispatchScheduleLoop() {
             }
         }
 
+        if (count($batch)) {
+            _batchJobs($batch, $params);
+        }
+
         return $next($params);
     };
+}
+
+function _batchJobs(array $jobs, $params) {
+    foreach ($jobs as $job) {
+        $params->logger->notice("Starting Job {name}", [
+            'name' => $job->payload['name'],
+        ]);
+    }
+
+    $params->process_manager->launch(
+        $params->getWorkerCommand(),
+        Job\serializeJobs($jobs),
+        $jobs
+    );
 }
 
 /** reaps all of the finished jobs. Allows for a max_retry configuration */
@@ -64,32 +83,41 @@ function queueJobReapScheduleLoop($fail_job) {
         $finished = $params->process_manager->reap();
 
         foreach ($finished as $tup) {
-            list($proc, $job) = $tup;
+            list($proc, $jobs) = $tup;
             if (!$proc->isSuccessful()) {
                 $params->logger->error("Job {name} Process #{pid} encountered an error\n{output}", [
                     'name' => $job->payload['name'],
                     'pid' => $proc->getPid(),
                     'output' => $proc->getErrorOutput() ?: $proc->getOutput(),
                 ]);
-                $fail_job($job, $params);
-            } else {
-                $res = unserialize($proc->getOutput());
-                if (!$res || !$res instanceof Result) {
-                    $params->logger->error("Job {name} Worker #{pid} returned invalid output\n{output}", [
-                        'name' => $job->payload['name'],
-                        'pid' => $proc->getPid(),
-                        'output' => $proc->getOutput(),
-                    ]);
+                foreach ($jobs as $job) {
                     $fail_job($job, $params);
-                    continue;
                 }
+                continue;
+            }
+
+            $results = unserialize($proc->getOutput());
+            if (!_assertResults($results)) {
+                $params->logger->error("Worker #{pid} returned invalid output\n{output}", [
+                    'pid' => $proc->getPid(),
+                    'output' => $proc->getOutput(),
+                ]);
+                foreach ($jobs as $job) {
+                    $fail_job($job, $params);
+                }
+                continue;
+            }
+
+            foreach (iter\zip($results, $jobs) as $tup) {
+                list($result, $job) = $tup;
+
                 $params->logger->notice("Job {name} finished with status: {status}\n{payload}", [
                     'name' => $job->payload['name'],
-                    'status' => $res->status,
-                    'payload' => json_encode($res->payload, JSON_PRETTY_PRINT),
+                    'status' => $result->status,
+                    'payload' => json_encode($result->payload, JSON_PRETTY_PRINT),
                 ]);
 
-                if ($res->isFailed()) {
+                if ($result->isFailed()) {
                     $fail_job($job, $params);
                 } else {
                     $queue->complete($job);
@@ -99,4 +127,8 @@ function queueJobReapScheduleLoop($fail_job) {
 
         return $next($params);
     };
+}
+
+function _assertResults($results) {
+    return is_array($results) && iter\all(iter\fn\operator('instanceof', Job\Result::class), $results);
 }
