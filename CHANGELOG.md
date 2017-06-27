@@ -11,6 +11,7 @@
 - Multiple Queue Providers #21
 - Batched Workers #22
 - Documentation on config options
+- Custom logging #15
 
 ## 0.3.4 - 2017-06-03
 

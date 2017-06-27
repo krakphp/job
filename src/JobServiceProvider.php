@@ -6,6 +6,7 @@ use Krak\Cargo;
 use Krak\Mw;
 use Krak\AutoArgs;
 use Psr\SimpleCache\CacheInterface;
+use Psr\Log;
 
 class JobServiceProvider implements Cargo\ServiceProvider
 {
@@ -120,6 +121,11 @@ class JobServiceProvider implements Cargo\ServiceProvider
         }
         if (!isset($c['dispatch'])) {
             $c->alias(Dispatch::class, 'dispatch');
+        }
+        if (!isset($c[Log\LoggerInterface::class])) {
+            $c[Log\LoggerInterface::class] = function() {
+                return new Log\NullLogger();
+            };
         }
     }
 }

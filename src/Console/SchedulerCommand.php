@@ -8,6 +8,7 @@ use Krak\Job,
     Symfony\Component\Console\Output,
     Symfony\Component\Console\Logger\ConsoleLogger,
     Symfony\Component\Yaml;
+use Psr\Log\LoggerInterface;
 
 class SchedulerCommand extends Command
 {
@@ -23,10 +24,13 @@ class SchedulerCommand extends Command
         }
         $options = json_decode(stream_get_contents($input->getStream()), true);
 
-        $scheduler = $this->getHelper('krak_job')->getKernel()[Job\Scheduler::class];
+        $kernel = $this->getHelper('krak_job')->getKernel();
+        $scheduler = $kernel[Job\Scheduler::class];
 
         $logger = new ConsoleLogger($output);
         $logger = new PrefixLogger($logger, $this->getPrefixFromOptions($options));
+        $logger = new ChainLogger([$logger, $kernel[LoggerInterface::class]]);
+        
         $logger->info("Starting Scheduler");
         $scheduler->run($output, $logger, $options);
         $logger->info("Stopping Scheduler");
