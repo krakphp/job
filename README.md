@@ -35,17 +35,20 @@ You can configure the kernel by wrapping any of the services defined in the cont
 ```php
 // configure the scheduling loop
 $kernel->config([
-    'name' => 'jobs', // name of the queue
+    'queue' => 'jobs', // name of the queue
     'sleep' => 10, // duration in seconds the scheduler will sleep for after every iteration
     'ttl' => 50, // max duration of the scheduler before dying
     'max_jobs' => 10, // max number of processes to launch at once
     'max_retry' => 3, // max number of retries before just giving up on a failed job
     'batch_size' => 5, // max number of jobs to process in a given batch
 ]);
-// configure the queue manager
-$kernel->queueManager(function($qm, $c) {
-    return Krak\Job\createQueueManager(new Predis\Client());
-});
+
+// configure the queue provider
+$kernel['Predis\ClientInterface'] = function() {
+    return new Predis\Client();
+};
+$kernel['krak.job.queue_provider'] = 'redis';
+
 // configure the consumer stack
 $kernel->wrap('krak.job.pipeline.consumer', function($consumer) {
     return $consumer->push(myConsumer());
@@ -90,6 +93,9 @@ use Krak\Job;
 
 class ProcessJob implements Job\Job, Job\PipeWrappedJob
 {
+
+    public function handle() {}
+
     public function pipe(Job\WrappedJob $wrapped) {
         return $wrapped->withName('my_custom_job_name')
             ->withQueue('my_custom_queue')
@@ -259,14 +265,6 @@ $migration->migrateUp($conn);
 Redis requires the `predis/predis` library to be installed. You then just set the queue manager via:
 
 ```php
-$kernel->queueManager(function() {
-    return createQueueManager(new Predis\Client());
-});
-```
-
-or
-
-```php
 $kernel['Predis\ClientInterface'] = function() {
     return new Predis\Client();
 };
@@ -276,14 +274,6 @@ $kernel['krak.job.queue_provider'] = 'redis';
 #### Sqs
 
 Sqs requires the aws sdk to be installed `aws/aws-sdk-php`. You can set the queue manager via:
-
-```php
-$kernel->queueManager(function() {
-return createQueueManager(new Aws\Sqs\SqsClient(), /* optional*/ ['queue-name' => '{queue-url}'], /* optional */ $sqs_receive_options);
-});
-```
-
-or
 
 ```php
 $kernel['Aws\Sqs\SqsClient'] = function() {
@@ -323,6 +313,14 @@ $kernel['krak.job.queue_provider'] = 'sync';
 ```
 
 ## Configuration Options
+
+### queue
+
+`queue` represents the name of the queue to use with the queue provider.
+
+### queue_provider
+
+This defines the queue provider at the queue level. Instead of having using only queue provider for every queue, you might have some queues on one queue provider and others on another. A good use case for this would be splitting admin type jobs on the doctrine queue and then splitting the frontend registration jobs on something more robust/faster like sqs.
 
 ### sleep
 

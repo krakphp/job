@@ -16,7 +16,8 @@ function failed(array $payload = []) {
     return Result::failed($payload);
 }
 
-/** factory for creating queue managers */
+/** factory for creating queue managers
+    @deprecated */
 function createQueueManager(...$args) {
     if ($args[0] instanceof \Predis\ClientInterface) {
         return new Queue\Redis\RedisQueueManager($args[0]);
