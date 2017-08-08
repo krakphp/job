@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Bug in docs and added in some missing docs #32
+
 ## 0.4.1 - 2017-06-27
 
 ### Added
